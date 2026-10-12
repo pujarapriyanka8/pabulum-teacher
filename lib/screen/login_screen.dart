@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,7 +5,6 @@ import 'package:pabulum_teacher/bloc/login/login_bloc.dart';
 import 'package:pabulum_teacher/utils/app_color.dart';
 import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,333 +14,170 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
 
-  late AnimationController _slideController;
-  late AnimationController _fadeController;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-
   bool _isPasswordVisible = false;
-  final bool _isLoading = false;
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
+    _animationController = AnimationController(
       vsync: this,
+      duration: const Duration(milliseconds: 1100),
     );
 
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
     );
 
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
-          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-        );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOutCubic,
+      ),
     );
 
-    _startAnimations();
-  }
-
-  void _startAnimations() {
-    _fadeController.forward();
-    _slideController.forward();
+    _animationController.forward();
   }
 
   @override
   void dispose() {
-    _slideController.dispose();
-    _fadeController.dispose();
-
+    _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LoginBloc(),
-      child: BlocBuilder<LoginBloc,LoginState>(
+      create: (_) => LoginBloc(),
+      child: BlocBuilder<LoginBloc, LoginState>(
         builder: (context, state) {
+          final keyboardVisible =
+              MediaQuery.viewInsetsOf(context).bottom > 0;
+
           return Stack(
             children: [
               Scaffold(
-                body: Container(
-                  height: MediaQuery
-                      .sizeOf(context)
-                      .height,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage(AppImages.icSplashBG1),
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.4),
+                backgroundColor: AppColors.background,
+                resizeToAvoidBottomInset: true,
+                bottomNavigationBar: Utils.navigationBar(),
+                body: GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                  },
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        AppImages.icBackgroundAll,
+                        fit: BoxFit.fill,
                       ),
-                      child: SafeArea(
-                        child: SingleChildScrollView(
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+
+                      SafeArea(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final height = constraints.maxHeight;
+                            final compact = height < 690;
+
+                            return Stack(
+                              fit: StackFit.expand,
                               children: [
-                                // Welcome Section with Quote
-                                FadeTransition(
-                                  opacity: _fadeAnimation,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.center,
-                                    children: [
-                                      SizedBox(height: 25),
-                                      Container(
-                                        width: 100,
-                                        height: 100,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.9,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            50,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.2,
-                                              ),
-                                              blurRadius: 15,
-                                              offset: const Offset(0, 5),
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Icon(
-                                          Icons.school,
-                                          size: 50,
-                                          color: Color(0xFF2a5298),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 20),
-
-                                      Text(
-                                        'Welcome Back!',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 32,
-                                          fontFamily: AppFonts.robotoBold,
-                                          color: Colors.white,
-                                          shadows: [
-                                            Shadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.5,
-                                              ),
-                                              offset: const Offset(2, 2),
-                                              blurRadius: 4,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                                SingleChildScrollView(
+                                  keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior
+                                      .onDrag,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
                                   ),
-                                ),
-
-                                const SizedBox(height: 40),
-
-                                // Login Dialog
-                                SlideTransition(
-                                  position: _slideAnimation,
-                                  child: Container(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 400,
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight: height,
                                     ),
-                                    padding: const EdgeInsets.all(30),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(25),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.2,
-                                          ),
-                                          blurRadius: 25,
-                                          offset: const Offset(0, 10),
+                                    child: Center(
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                          maxWidth: 430,
                                         ),
-                                      ],
-                                    ),
-                                    child: Form(
-                                      key: _formKey,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                        children: [
-                                          Text(
-                                            'Login',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.bold,
-                                              color: const Color(0xFF2a5298),
-
-                                            ),
-                                          ),
-                                          const SizedBox(height: 30),
-
-                                          // Username Field
-                                          TextFormField(
-                                            controller: state.userName,
-                                            decoration: InputDecoration(
-                                              labelText: 'Username',
-                                              prefixIcon: const Icon(
-                                                Icons.person_outline,
+                                        child: Form(
+                                          key: _formKey,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                            children: [
+                                              SizedBox(
+                                                height: compact ? 12 : 25,
                                               ),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                BorderRadius.circular(15),
+
+                                              _buildFrolicLogo(),
+
+                                              SizedBox(
+                                                height: compact ? 4 : 10,
                                               ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                BorderRadius.circular(15),
-                                                borderSide: const BorderSide(
-                                                  color: Color(0xFF2a5298),
-                                                  width: 2,
+
+                                              _buildBoyIllustration(
+                                                compact
+                                                    ? 180
+                                                    : (height * 0.27)
+                                                    .clamp(
+                                                  180.0,
+                                                  230.0,
                                                 ),
                                               ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 20),
 
-                                          // Password Field
-                                          TextFormField(
-                                            controller: state.password,
-                                            obscureText: !_isPasswordVisible,
-                                            decoration: InputDecoration(
-                                              labelText: 'Password',
-                                              prefixIcon: const Icon(
-                                                Icons.lock_outline,
-                                              ),
-                                              suffixIcon: IconButton(
-                                                icon: Icon(
-                                                  _isPasswordVisible
-                                                      ? Icons.visibility
-                                                      : Icons.visibility_off,
-                                                ),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _isPasswordVisible =
-                                                    !_isPasswordVisible;
-                                                  });
-                                                },
-                                              ),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                BorderRadius.circular(15),
-                                              ),
-                                              focusedBorder: OutlineInputBorder(
-                                                borderRadius:
-                                                BorderRadius.circular(15),
-                                                borderSide: const BorderSide(
-                                                  color: Color(0xFF2a5298),
-                                                  width: 2,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 30),
+                                              const SizedBox(height: 9),
 
-                                          // Login Button
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              if (_formKey.currentState!
-                                                  .validate()) {
-                                                context.read<LoginBloc>().add(
-                                                  OnLoginClickEvent(),
-                                                );
-                                              }
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(
-                                                0xFF2a5298,
-                                              ),
-                                              foregroundColor: Colors.white,
-                                              padding:
-                                              const EdgeInsets.symmetric(
-                                                vertical: 16,
-                                              ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                BorderRadius.circular(15),
-                                              ),
-                                              elevation: 5,
-                                            ),
-                                            child: Text(
-                                              'Login',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 18,
-                                                fontFamily:
-                                                AppFonts.robotoRegular,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 20),
+                                              _buildWelcomeSection(),
 
-                                          // Forgot Password
-                                          TextButton(
-                                            onPressed: () {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    'Forgot password feature coming soon!',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                      FontWeight.w500,
-                                                      fontFamily: AppFonts
-                                                          .robotoRegular,
-                                                    ),
-                                                  ),
-                                                  behavior:
-                                                  SnackBarBehavior.floating,
-                                                ),
-                                              );
-                                            },
-                                            child: Text(
-                                              'Forgot Password?',
-                                              style: TextStyle(
-                                                color: const Color(0xFF2a5298),
-                                                fontWeight: FontWeight.w500,
-                                                fontFamily:
-                                                AppFonts.robotoRegular,
+                                              SizedBox(
+                                                height: compact ? 22 : 28,
                                               ),
-                                            ),
+
+                                              _buildUsernameField(state),
+
+                                              const SizedBox(height: 15),
+
+                                              _buildPasswordField(state),
+
+                                              _buildForgotPassword(context),
+
+                                              const SizedBox(height: 13),
+
+                                              _buildLoginButton(context),
+
+                                              SizedBox(
+                                                height: keyboardVisible
+                                                    ? 30
+                                                    : 135,
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
+
+
                               ],
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-                bottomNavigationBar: Utils.navigationBar(),
               ),
+
               if (state.isLoading) Utils.loaderWid(),
               if (state.isLoading) Utils.loaderBrier(),
             ],
@@ -350,5 +185,277 @@ class _LoginScreenState extends State<LoginScreen>
         },
       ),
     );
+  }
+
+  Widget _buildFrolicLogo() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Center(
+        child: Image.asset(
+          AppImages.icSplashLogo,
+          width: 210,
+          height: 92,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBoyIllustration(double height) {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Center(
+          child: Image.asset(
+            AppImages.icLoginHeader,
+            height: height,
+            width: double.infinity,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeSection() {
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Column(
+          children: [
+            const Text(
+              'Welcome back! 👋',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 30,
+                fontWeight: FontWeight.w800,
+                height: 1.15,
+                letterSpacing: -1,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ready for a wonderful school day?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppColors.textPrimary.withValues(alpha: 0.55),
+                fontSize: 14.5,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUsernameField(LoginState state) {
+    return TextFormField(
+      controller: state.userName,
+      keyboardType: TextInputType.text,
+      textInputAction: TextInputAction.next,
+      cursorColor: AppColors.primary,
+      style: const TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Please enter username';
+        }
+        return null;
+      },
+      decoration: _inputDecoration(
+        hint: 'Enter your username',
+        icon: Icons.person_outline_rounded,
+      ),
+    );
+  }
+
+  Widget _buildPasswordField(LoginState state) {
+    return TextFormField(
+      controller: state.password,
+      obscureText: !_isPasswordVisible,
+      textInputAction: TextInputAction.done,
+      cursorColor: AppColors.primary,
+      onFieldSubmitted: (_) {
+        _login(context);
+      },
+      style: const TextStyle(
+        color: AppColors.textPrimary,
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter password';
+        }
+        return null;
+      },
+      decoration: _inputDecoration(
+        hint: 'Enter your password',
+        icon: Icons.lock_outline_rounded,
+      ).copyWith(
+        suffixIcon: IconButton(
+          onPressed: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+          icon: Icon(
+            _isPasswordVisible
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
+            color: AppColors.textPrimary,
+            size: 22,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForgotPassword(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: TextButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Forgot password feature coming soon!',
+                ),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+        },
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          padding: const EdgeInsets.only(
+            top: 10,
+            bottom: 5,
+            right: 2,
+          ),
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        child: const Text(
+          'Forgot password?',
+          style: TextStyle(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginButton(BuildContext context) {
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            AppColors.primary,
+            AppColors.primary.withValues(alpha: 0.85),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.20),
+            blurRadius: 16,
+            offset: const Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            _login(context);
+          },
+          child: const Center(
+            child: Text(
+              'Login',
+              style: TextStyle(
+                color: AppColors.white,
+                fontSize: 19,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(
+        color: AppColors.textPrimary.withValues(alpha: 0.43),
+        fontSize: 14.5,
+      ),
+      prefixIcon: Icon(
+        icon,
+        color: AppColors.textPrimary,
+        size: 24,
+      ),
+      prefixIconConstraints: const BoxConstraints(
+        minWidth: 60,
+      ),
+      filled: true,
+      fillColor: AppColors.white,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 18,
+      ),
+      border: _fieldBorder(AppColors.lavenderMedium),
+      enabledBorder: _fieldBorder(AppColors.lavenderMedium),
+      focusedBorder: _fieldBorder(
+        AppColors.primary,
+        width: 1.7,
+      ),
+      errorBorder: _fieldBorder(Colors.redAccent),
+      focusedErrorBorder: _fieldBorder(
+        Colors.redAccent,
+        width: 1.7,
+      ),
+    );
+  }
+
+  OutlineInputBorder _fieldBorder(
+      Color color, {
+        double width = 1,
+      }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(22),
+      borderSide: BorderSide(
+        color: color,
+        width: width,
+      ),
+    );
+  }
+
+  void _login(BuildContext context) {
+    FocusScope.of(context).unfocus();
+
+    if (_formKey.currentState?.validate() ?? false) {
+      context.read<LoginBloc>().add(
+        OnLoginClickEvent(),
+      );
+    }
   }
 }

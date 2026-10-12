@@ -382,6 +382,71 @@ class Utils{
       false,
     );
   }
+
+
+
+  static const List<Color> cardBorderColors = [
+    Color(0xFF8A62D6),
+    Color(0xFF279B7B),
+    Color(0xFF4A90D6),
+    Color(0xFFEF829C),
+    Color(0xFFE7A34E),
+    Color(0xFF45B9C0),
+  ];
+
+  static const List<Color> cardBackgroundColors = [
+    Color(0xFFF5F0FF),
+    Color(0xFFEDF9F4),
+    Color(0xFFEEF5FF),
+    Color(0xFFFFF0F5),
+    Color(0xFFFFF7E9),
+    Color(0xFFECFAFA),
+  ];
+
+  static Color getCardBorderColor(int index) {
+    return cardBorderColors[
+    index % cardBorderColors.length];
+  }
+
+  static Color getCardBackgroundColor(int index) {
+    return cardBackgroundColors[
+    index % cardBackgroundColors.length];
+  }
+
+  static BoxDecoration cardDecoration({
+    required int index,
+    double radius = 18,
+    double topWidth = 6,
+    double borderWidth = 1,
+  }) {
+    final color = getCardBorderColor(index);
+
+    return BoxDecoration(
+      color: getCardBackgroundColor(index).withValues(
+        alpha: 0.75,
+      ),
+      borderRadius: BorderRadius.circular(radius),
+      border: Border(
+        top: BorderSide(
+          color: color,
+          width: topWidth,
+        ),
+        left: BorderSide(
+          color: color,
+          width: borderWidth,
+        ),
+        right: BorderSide(
+          color: color,
+          width: borderWidth,
+        ),
+        bottom: BorderSide(
+          color: color,
+          width: borderWidth,
+        ),
+      ),
+    );
+  }
+
 }
 
 

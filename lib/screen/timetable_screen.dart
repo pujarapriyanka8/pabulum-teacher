@@ -1,8 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:pabulum_teacher/bloc/timetable/timetable_bloc.dart';
 import 'package:pabulum_teacher/model/timetable_model.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
 class TimetableScreen extends StatelessWidget {
@@ -11,72 +14,107 @@ class TimetableScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      appBar: Utils.customAppBar(
-        'Timetable',
-        context,
-        isBack: true,
-        onBackPress: () => Navigator.of(context).pop(),
-      ),
+      backgroundColor: AppColors.background,
       body: BlocProvider(
-        create: (_) =>
-        TimetableBloc()..add(const TimetableEvent.onLoadTimetable()),
+        create: (_) => TimetableBloc()
+          ..add(const TimetableEvent.onLoadTimetable()),
         child: BlocBuilder<TimetableBloc, TimetableState>(
           builder: (context, state) {
             final totalLectures = state.arrTimetable.fold<int>(
               0,
-                  (total, day) => total + (day.periods?.length ?? 0),
+                  (total, day) =>
+              total + (day.periods?.length ?? 0),
             );
 
             return Stack(
               fit: StackFit.expand,
               children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
+                  ),
+                ),
                 SafeArea(
-                  top: false,
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 700),
+                      constraints:
+                      const BoxConstraints(maxWidth: 700),
                       child: Column(
                         children: [
+                          Padding(
+                            padding:
+                            const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            child: CustomAppBar(
+                              title: 'Timetable',
+                              subtitle:
+                              'Your weekly class schedule\nat a glance.',
+                              image: AppImages.icTimetable,
+                            ),
+                          ),
                           _buildHeader(
                             totalLectures: totalLectures,
-                            hasTimetable: state.arrTimetable.isNotEmpty,
+                            hasTimetable:
+                            state.arrTimetable.isNotEmpty,
                           ),
                           Expanded(
                             child: state.arrTimetable.isEmpty
+                                ? state.isLoading
                                 ? const SizedBox.shrink()
+                                : _buildEmptyMessage(
+                              state.errorMessage,
+                            )
                                 : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(
+                              keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior
+                                  .onDrag,
+                              padding:
+                              const EdgeInsets.fromLTRB(
                                 16,
                                 0,
                                 16,
-                                20,
+                                16,
                               ),
-                              itemCount: state.arrTimetable.length,
+                              itemCount:
+                              state.arrTimetable.length,
                               itemBuilder: (context, index) {
-                                final day = state.arrTimetable[index];
-                                final dayName = day.day ?? '';
-                                final dayKey =
-                                dayName.trim().toLowerCase();
+                                final day =
+                                state.arrTimetable[index];
 
-                                final today = TimetableBloc.weekDays[
-                                DateTime.now().weekday - 1];
+                                final dayName = day.day ?? '';
+
+                                final dayKey = dayName
+                                    .trim()
+                                    .toLowerCase();
+
+                                final today =
+                                TimetableBloc.weekDays[
+                                DateTime.now()
+                                    .weekday -
+                                    1];
 
                                 return Padding(
                                   key: ValueKey(dayKey),
-                                  padding: const EdgeInsets.only(
+                                  padding:
+                                  const EdgeInsets.only(
                                     bottom: 12,
                                   ),
                                   child: _buildTimetableDayCard(
                                     day: day,
-                                    isToday:
-                                    dayKey == today.toLowerCase(),
+                                    index: index,
+                                    isToday: dayKey ==
+                                        today.toLowerCase(),
                                     isExpanded: state.expandedDays
                                         .contains(dayKey),
                                     onTap: () {
-                                      context.read<TimetableBloc>().add(
-                                        TimetableEvent.onToggleDay(
+                                      context
+                                          .read<TimetableBloc>()
+                                          .add(
+                                        TimetableEvent
+                                            .onToggleDay(
                                           day: dayName,
                                         ),
                                       );
@@ -91,10 +129,6 @@ class TimetableScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (state.arrTimetable.isEmpty && !state.isLoading)
-                  Positioned.fill(
-                    child: _buildEmptyMessage(state.errorMessage),
-                  ),
                 if (state.isLoading) Utils.loaderBrier(),
                 if (state.isLoading) Utils.loaderWid(),
               ],
@@ -111,93 +145,91 @@ class TimetableScreen extends StatelessWidget {
   }) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        14,
+      ),
+      padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFFEDE5FF),
-            Color(0xFFF3F0FF),
-            Color(0xFFEBF3FF),
+            Color(0xFFF3E9FF),
+            Color(0xFFF2F0FF),
+            Color(0xFFEAF3FF),
           ],
         ),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: const Color(0xFFDED3F8),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF7850D5).withAlpha(12),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(220),
-              borderRadius: BorderRadius.circular(14),
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(15),
               border: Border.all(
-                color: const Color(0xFFE3D8FA),
+                color: const Color(0xFFE6DDFC),
               ),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.calendar_month_rounded,
-              color: Color(0xFF7850D5),
-              size: 27,
+              color: AppColors.purple,
+              size: 29,
             ),
           ),
-          const SizedBox(width: 13),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Weekly schedule',
                   style: TextStyle(
-                    color: Color(0xFF39265F),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+                    color: AppColors.ink,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
+                Text(
                   'Your classes, day by day',
                   style: TextStyle(
-                    color: Color(0xFF74658D),
-                    fontSize: 13,
-                    height: 1.3,
+                    color: AppColors.muted,
+                    fontSize: 12,
                   ),
                 ),
                 if (hasTimetable) ...[
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 9),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(210),
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: const Color(0xFFE3D8FA),
+                        color: const Color(0xFFDDD2FC),
                       ),
                     ),
                     child: Text(
                       '$totalLectures '
                           '${totalLectures == 1 ? 'lecture' : 'lectures'} '
                           'this week',
-                      style: const TextStyle(
-                        color: Color(0xFF704CDA),
+                      style: TextStyle(
+                        color: AppColors.purple,
                         fontSize: 11,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -211,23 +243,19 @@ class TimetableScreen extends StatelessWidget {
   }
 
   Widget _buildEmptyMessage(String? errorMessage) {
-    return SafeArea(
-      top: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-              errorMessage ?? 'No timetable available.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 16,
-                height: 1.4,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 24,
+        ),
+        child: Text(
+          errorMessage ?? 'No timetable available.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: AppColors.ink,
+            fontSize: 15,
+            height: 1.4,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -236,22 +264,22 @@ class TimetableScreen extends StatelessWidget {
 
   Widget _buildTimetableDayCard({
     required TimeTableData day,
+    required int index,
     required bool isToday,
     required bool isExpanded,
     required VoidCallback onTap,
   }) {
     final periods = day.periods ?? <Periods>[];
 
+    final accentColor =
+    Utils.getCardBorderColor(index);
+
     return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: isExpanded ? const Color(0xFFFCFAFF) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isExpanded
-              ? const Color(0xFFE5DAFF)
-              : const Color(0xFFE5E9F2),
-        ),
+      width: double.infinity,
+      decoration: Utils.cardDecoration(
+        index: index,
+        radius: 18,
+        topWidth: 6,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -266,6 +294,7 @@ class TimetableScreen extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: onTap,
+                borderRadius: BorderRadius.circular(18),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
@@ -274,20 +303,20 @@ class TimetableScreen extends StatelessWidget {
                   child: Row(
                     children: [
                       Container(
-                        width: 36,
-                        height: 36,
+                        width: 39,
+                        height: 39,
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: isExpanded
-                              ? const Color(0xFFECE3FF)
-                              : const Color(0xFFF0F2F7),
-                          borderRadius: BorderRadius.circular(11),
+                          color: accentColor.withValues(
+                            alpha: 0.13,
+                          ),
+                          borderRadius:
+                          BorderRadius.circular(11),
                         ),
                         child: Icon(
                           Icons.calendar_month_outlined,
                           size: 22,
-                          color: isExpanded
-                              ? const Color(0xFF7547D8)
-                              : const Color(0xFF626D85),
+                          color: accentColor,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -295,54 +324,57 @@ class TimetableScreen extends StatelessWidget {
                         child: Wrap(
                           spacing: 7,
                           runSpacing: 5,
-                          crossAxisAlignment: WrapCrossAlignment.center,
+                          crossAxisAlignment:
+                          WrapCrossAlignment.center,
                           children: [
                             Text(
                               _displayText(day.day),
-                              style: const TextStyle(
-                                color: Color(0xFF19243B),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
+                              style: TextStyle(
+                                color: AppColors.ink,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                             if (isToday)
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                                padding:
+                                const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 5,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF8A63EB),
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: AppColors.purple,
+                                  borderRadius:
+                                  BorderRadius.circular(15),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'Today',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontSize: 10,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 5),
                       Text(
                         '${periods.length} '
                             '${periods.length == 1 ? 'lecture' : 'lectures'}',
-                        style: const TextStyle(
-                          color: Color(0xFF7C859C),
+                        style: TextStyle(
+                          color: AppColors.muted,
                           fontSize: 11,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 5),
                       Icon(
                         isExpanded
                             ? Icons.keyboard_arrow_up_rounded
                             : Icons.keyboard_arrow_down_rounded,
-                        color: const Color(0xFF626D85),
-                        size: 23,
+                        color: accentColor,
+                        size: 24,
                       ),
                     ],
                   ),
@@ -351,39 +383,47 @@ class TimetableScreen extends StatelessWidget {
             ),
           ),
           AnimatedSize(
-            duration: const Duration(milliseconds: 220),
+            duration:
+            const Duration(milliseconds: 220),
             curve: Curves.easeInOut,
             alignment: Alignment.topCenter,
             child: isExpanded
                 ? Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                0,
+                12,
+                12,
+              ),
               child: periods.isEmpty
-                  ? const Padding(
-                padding: EdgeInsets.all(16),
+                  ? Padding(
+                padding: const EdgeInsets.all(12),
                 child: Text(
                   'No lectures scheduled.',
                   style: TextStyle(
-                    color: Color(0xFF7C859C),
+                    color: AppColors.muted,
                     fontSize: 13,
                   ),
                 ),
               )
                   : Column(
                 children: [
-                  for (
-                  int index = 0;
-                  index < periods.length;
-                  index++
-                  )
+                  for (int i = 0;
+                  i < periods.length;
+                  i++)
                     _buildLectureTimelineRow(
-                      period: periods[index],
-                      isFirst: index == 0,
-                      isLast: index == periods.length - 1,
+                      period: periods[i],
+                      isFirst: i == 0,
+                      isLast:
+                      i == periods.length - 1,
                     ),
                 ],
               ),
             )
-                : const SizedBox(width: double.infinity, height: 0),
+                : const SizedBox(
+              width: double.infinity,
+              height: 0,
+            ),
           ),
         ],
       ),
@@ -395,7 +435,8 @@ class TimetableScreen extends StatelessWidget {
     required bool isFirst,
     required bool isLast,
   }) {
-    final palette = _paletteFor(period.subjectName);
+    final palette =
+    _paletteFor(period.subjectName);
 
     return Stack(
       children: [
@@ -403,7 +444,9 @@ class TimetableScreen extends StatelessWidget {
           left: 5,
           top: isFirst ? 21 : 0,
           bottom: isLast ? null : 0,
-          height: isLast ? (isFirst ? 0 : 21) : null,
+          height: isLast
+              ? (isFirst ? 0 : 21)
+              : null,
           child: Container(
             width: 2,
             color: const Color(0xFFE0E3EF),
@@ -419,7 +462,7 @@ class TimetableScreen extends StatelessWidget {
               color: palette.accent,
               shape: BoxShape.circle,
               border: Border.all(
-                color: const Color(0xFFFCFAFF),
+                color: AppColors.white,
                 width: 2,
               ),
             ),
@@ -452,7 +495,9 @@ class TimetableScreen extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: accentColor.withAlpha(35),
+          color: accentColor.withValues(
+            alpha: 0.22,
+          ),
         ),
       ),
       child: Column(
@@ -465,10 +510,10 @@ class TimetableScreen extends StatelessWidget {
               color: accentColor,
               fontSize: 13,
               height: 1.3,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 9),
           LayoutBuilder(
             builder: (context, constraints) {
               final subject = _buildSubject(
@@ -483,11 +528,14 @@ class TimetableScreen extends StatelessWidget {
 
               final useTwoRows =
                   constraints.maxWidth < 230 ||
-                      MediaQuery.textScalerOf(context).scale(13) > 18;
+                      MediaQuery.textScalerOf(context)
+                          .scale(13) >
+                          18;
 
               if (useTwoRows) {
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     subject,
                     const SizedBox(height: 8),
@@ -505,7 +553,8 @@ class TimetableScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxWidth: constraints.maxWidth * 0.45,
+                      maxWidth:
+                      constraints.maxWidth * 0.45,
                     ),
                     child: classChip,
                   ),
@@ -523,20 +572,21 @@ class TimetableScreen extends StatelessWidget {
     required Color accentColor,
   }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
       children: [
         Icon(
           Icons.menu_book_rounded,
-          size: 23,
+          size: 22,
           color: accentColor,
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             _displayText(period.subjectName),
-            style: const TextStyle(
-              color: Color(0xFF19243B),
-              fontSize: 15,
+            style: TextStyle(
+              color: AppColors.ink,
+              fontSize: 14,
               height: 1.35,
               fontWeight: FontWeight.w700,
             ),
@@ -556,7 +606,9 @@ class TimetableScreen extends StatelessWidget {
         vertical: 7,
       ),
       decoration: BoxDecoration(
-        color: accentColor.withAlpha(18),
+        color: accentColor.withValues(
+          alpha: 0.10,
+        ),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Text(
@@ -567,13 +619,14 @@ class TimetableScreen extends StatelessWidget {
           color: accentColor,
           fontSize: 11,
           height: 1.3,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
   }
 
-  static const _lecturePalettes = <({Color background, Color accent})>[
+  static const _lecturePalettes =
+  <({Color background, Color accent})>[
     (
     background: Color(0xFFF2ECFF),
     accent: Color(0xFF7850D5),
@@ -592,13 +645,16 @@ class TimetableScreen extends StatelessWidget {
     ),
   ];
 
-  ({Color background, Color accent}) _paletteFor(String? subject) {
+  ({Color background, Color accent}) _paletteFor(
+      String? subject,
+      ) {
     final value = (subject ?? '').codeUnits.fold<int>(
       0,
           (sum, character) => sum + character,
     );
 
-    return _lecturePalettes[value % _lecturePalettes.length];
+    return _lecturePalettes[
+    value % _lecturePalettes.length];
   }
 
   String _displayText(String? value) {
@@ -627,9 +683,14 @@ class TimetableScreen extends StatelessWidget {
       return text;
     }
 
-    final hour12 = hour % 12 == 0 ? 12 : hour % 12;
-    final minuteText = minute.toString().padLeft(2, '0');
-    final suffix = hour >= 12 ? 'PM' : 'AM';
+    final hour12 =
+    hour % 12 == 0 ? 12 : hour % 12;
+
+    final minuteText =
+    minute.toString().padLeft(2, '0');
+
+    final suffix =
+    hour >= 12 ? 'PM' : 'AM';
 
     return '$hour12:$minuteText $suffix';
   }

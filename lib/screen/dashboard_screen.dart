@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +6,8 @@ import 'package:intl/intl.dart';
 import 'package:pabulum_teacher/bloc/dashboard/dashboard_bloc.dart';
 import 'package:pabulum_teacher/routes/routes_name.dart';
 import 'package:pabulum_teacher/screen/teaching_tools_section.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/constants.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
@@ -33,45 +36,44 @@ class DashboardScreen extends StatelessWidget {
               return Stack(
                 children: [
                   Scaffold(
-                    backgroundColor: const Color(0xFFF5F2FC),
-                    body: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFFF0EBFC),
-                            Color(0xFFF0F6FF),
-                            Color(0xFFF2F8F3),
-                          ],
+                    backgroundColor: AppColors.background,
+                    body: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.asset(
+                          AppImages.icBackgroundAll,
+                          fit: BoxFit.fill,
                         ),
-                      ),
-                      child: SafeArea(
-                        bottom: false,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.fromLTRB(
-                            16,
-                            16,
-                            16,
-                            20,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildHeader(state, now),
-                              const SizedBox(height: 16),
-                              _buildAttendance(context, state),
-                              const SizedBox(height: 22),
-                              _buildAnnouncementSection(context, state),
-                              const SizedBox(height: 22),
-                              _buildDashboardGrid(context),
-                              const SizedBox(height: 24),
-                            ],
+                        SafeArea(
+                          bottom: false,
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(
+                              16,
+                              16,
+                              16,
+                              20,
+                            ),
+                            child: Column(
+                              crossAxisAlignment:
+                              CrossAxisAlignment.stretch,
+                              children: [
+                                _buildHeader(state, now),
+                                const SizedBox(height: 16),
+                                _buildAttendance(context, state),
+                                const SizedBox(height: 22),
+                                _buildAnnouncementSection(
+                                  context,
+                                  state,
+                                ),
+                                const SizedBox(height: 22),
+                                _buildDashboardGrid(context),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                    // Bottom navigation stays in your parent tab screen.
                   ),
                   if (state.isLoading) Utils.loaderBrier(),
                   if (state.isLoading) Utils.loaderWid(),
@@ -113,14 +115,17 @@ class DashboardScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment:
+              CrossAxisAlignment.stretch,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
                         children: [
                           Text(
                             greeting,
@@ -147,7 +152,9 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    _buildTeacherAvatar(user?.profileImage),
+                    _buildTeacherAvatar(
+                      user?.profileImage,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 5),
@@ -208,58 +215,56 @@ class DashboardScreen extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final largeText =
-            MediaQuery.textScalerOf(context).scale(13) > 19;
-
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment:
+          CrossAxisAlignment.stretch,
           children: [
-
-               Padding(
-                    padding: const EdgeInsets.only(
-                      top: 4,
-                      bottom: 8,
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 4,
+                bottom: 8,
+              ),
+              child: Row(
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+                children: [
+                  _buildSchoolImage(
+                    school?.profileImage,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
                       children: [
-                        _buildSchoolImage(school?.profileImage),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _displayText(school?.name),
-                                softWrap: true,
-                                style: const TextStyle(
-                                  color: Color(0xFF252C50),
-                                  fontSize: 13,
-                                  height: 1.35,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                DateFormat(
-                                  'EEE, d MMM • h:mm a',
-                                ).format(now),
-                                softWrap: true,
-                                style: const TextStyle(
-                                  color: Color(0xFF606985),
-                                  fontSize: 10.5,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ],
+                        Text(
+                          _displayText(school?.name),
+                          softWrap: true,
+                          style: const TextStyle(
+                            color: Color(0xFF252C50),
+                            fontSize: 13,
+                            height: 1.35,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat(
+                            'EEE, d MMM • h:mm a',
+                          ).format(now),
+                          softWrap: true,
+                          style: const TextStyle(
+                            color: Color(0xFF606985),
+                            fontSize: 10.5,
+                            height: 1.4,
                           ),
                         ),
                       ],
                     ),
                   ),
-
-
-
+                ],
+              ),
+            ),
             _buildClassTeacherCard(state),
           ],
         );
@@ -318,10 +323,12 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Class teacher · ${data?.user?.classTeacherOf ?? '—'}',
+                  'Class teacher · '
+                      '${data?.user?.classTeacherOf ?? '—'}',
                   softWrap: true,
                   style: const TextStyle(
                     color: Color(0xFF242743),
@@ -352,7 +359,9 @@ class DashboardScreen extends StatelessWidget {
       DashboardState state,
       ) {
     final data = state.dashboardData;
-    final markedToday = Utils.isToday(data?.attendanceDate);
+    final markedToday = Utils.isToday(
+      data?.attendanceDate,
+    );
 
     final status = data == null
         ? '—'
@@ -384,13 +393,17 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment:
+        CrossAxisAlignment.stretch,
         children: [
           LayoutBuilder(
             builder: (context, constraints) {
               const heading = Row(
                 children: [
-                  Text('📋', style: TextStyle(fontSize: 25)),
+                  Text(
+                    '📋',
+                    style: TextStyle(fontSize: 25),
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -415,7 +428,8 @@ class DashboardScreen extends StatelessWidget {
                   color: markedToday
                       ? const Color(0xFFCDEBD9)
                       : const Color(0xFFFFE7AB),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius:
+                  BorderRadius.circular(14),
                 ),
                 child: Text(
                   status,
@@ -430,11 +444,14 @@ class DashboardScreen extends StatelessWidget {
               );
 
               final stack = constraints.maxWidth < 310 ||
-                  MediaQuery.textScalerOf(context).scale(14) > 18;
+                  MediaQuery.textScalerOf(context)
+                      .scale(14) >
+                      18;
 
               if (stack) {
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     heading,
                     const SizedBox(height: 8),
@@ -458,10 +475,12 @@ class DashboardScreen extends StatelessWidget {
               final tiles = [
                 _buildAttendanceCount(
                   label: 'Total',
-                  value: '${data?.myStudentsCount ?? '—'}',
+                  value:
+                  '${data?.myStudentsCount ?? '—'}',
                   icon: Icons.groups_rounded,
                   color: const Color(0xFF6951BD),
-                  background: const Color(0xFFE6DDFB),
+                  background:
+                  const Color(0xFFE6DDFB),
                 ),
                 _buildAttendanceCount(
                   label: 'Present',
@@ -470,7 +489,8 @@ class DashboardScreen extends StatelessWidget {
                       : '0',
                   icon: Icons.person_rounded,
                   color: const Color(0xFF188465),
-                  background: const Color(0xFFD6F0E2),
+                  background:
+                  const Color(0xFFD6F0E2),
                 ),
                 _buildAttendanceCount(
                   label: 'Absent',
@@ -479,16 +499,20 @@ class DashboardScreen extends StatelessWidget {
                       : '0',
                   icon: Icons.person_outline_rounded,
                   color: const Color(0xFFBD536A),
-                  background: const Color(0xFFF8DEE5),
+                  background:
+                  const Color(0xFFF8DEE5),
                 ),
               ];
 
               final stack = constraints.maxWidth < 240 ||
-                  MediaQuery.textScalerOf(context).scale(12) > 19;
+                  MediaQuery.textScalerOf(context)
+                      .scale(12) >
+                      19;
 
               if (stack) {
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
                   children: [
                     tiles[0],
                     const SizedBox(height: 8),
@@ -501,7 +525,8 @@ class DashboardScreen extends StatelessWidget {
 
               return IntrinsicHeight(
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
                   children: [
                     Expanded(child: tiles[0]),
                     const SizedBox(width: 8),
@@ -523,13 +548,15 @@ class DashboardScreen extends StatelessWidget {
             style: FilledButton.styleFrom(
               backgroundColor: _purple,
               foregroundColor: Colors.white,
-              minimumSize: const Size.fromHeight(48),
+              minimumSize:
+              const Size.fromHeight(48),
               padding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 12,
               ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(13),
+                borderRadius:
+                BorderRadius.circular(13),
               ),
             ),
             icon: const Icon(
@@ -580,10 +607,15 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 7),
           Wrap(
             alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
+            crossAxisAlignment:
+            WrapCrossAlignment.center,
             spacing: 6,
             children: [
-              Icon(icon, size: 20, color: color),
+              Icon(
+                icon,
+                size: 20,
+                color: color,
+              ),
               Text(
                 value,
                 textAlign: TextAlign.center,
@@ -605,11 +637,15 @@ class DashboardScreen extends StatelessWidget {
       BuildContext context,
       DashboardState state,
       ) {
-    final announcement = state.dashboardData?.announcement;
-    final description = announcement?.description?.trim() ?? '';
+    final announcement =
+        state.dashboardData?.announcement;
+
+    final description =
+        announcement?.description?.trim() ?? '';
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment:
+      CrossAxisAlignment.stretch,
       children: [
         const Text(
           '📣 Announcements',
@@ -652,11 +688,13 @@ class DashboardScreen extends StatelessWidget {
               ),
             )
                 : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment:
+              CrossAxisAlignment.stretch,
               children: [
                 Container(
                   padding: const EdgeInsets.all(14),
-                  color: const Color(0xFFFBDDC5),
+                  color:
+                  const Color(0xFFFBDDC5),
                   child: Row(
                     children: [
                       const Icon(
@@ -667,13 +705,16 @@ class DashboardScreen extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          _displayText(announcement.title),
+                          _displayText(
+                            announcement.title,
+                          ),
                           softWrap: true,
                           style: const TextStyle(
                             color: _navy,
                             fontSize: 15,
                             height: 1.4,
-                            fontWeight: FontWeight.w700,
+                            fontWeight:
+                            FontWeight.w700,
                           ),
                         ),
                       ),
@@ -681,71 +722,110 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(15),
+                  padding:
+                  const EdgeInsets.all(15),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    crossAxisAlignment:
+                    CrossAxisAlignment
+                        .stretch,
                     children: [
                       if (description.isNotEmpty) ...[
                         AnimatedSize(
-                          duration: const Duration(
+                          duration:
+                          const Duration(
                             milliseconds: 220,
                           ),
-                          alignment: Alignment.topLeft,
+                          alignment:
+                          Alignment.topLeft,
                           curve: Curves.easeInOut,
                           child: Text(
                             description,
-                            maxLines: state.isExpanded ? null : 3,
-                            overflow: state.isExpanded
-                                ? TextOverflow.visible
-                                : TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF655E5A),
+                            maxLines:
+                            state.isExpanded
+                                ? null
+                                : 3,
+                            overflow:
+                            state.isExpanded
+                                ? TextOverflow
+                                .visible
+                                : TextOverflow
+                                .ellipsis,
+                            style:
+                            const TextStyle(
+                              color:
+                              Color(0xFF655E5A),
                               fontSize: 14,
                               height: 1.6,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 15),
+                        const SizedBox(
+                          height: 15,
+                        ),
                       ],
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding:
+                        const EdgeInsets.all(
+                          12,
+                        ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(145),
-                          borderRadius: BorderRadius.circular(13),
+                          color: Colors.white
+                              .withAlpha(145),
+                          borderRadius:
+                          BorderRadius.circular(
+                            13,
+                          ),
                         ),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                          CrossAxisAlignment
+                              .start,
                           children: [
                             const Icon(
-                              Icons.calendar_month_outlined,
-                              color: Color(0xFFB76A32),
+                              Icons
+                                  .calendar_month_outlined,
+                              color:
+                              Color(0xFFB76A32),
                               size: 21,
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(
+                              width: 10,
+                            ),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                                CrossAxisAlignment
+                                    .start,
                                 children: [
                                   const Text(
                                     'Announcement period',
-                                    style: TextStyle(
-                                      color: Color(0xFF8B7567),
+                                    style:
+                                    TextStyle(
+                                      color: Color(
+                                        0xFF8B7567,
+                                      ),
                                       fontSize: 11,
                                     ),
                                   ),
-                                  const SizedBox(height: 5),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
                                   Text(
                                     Utils.period(
-                                      announcement.startDate,
-                                      announcement.endDate,
+                                      announcement
+                                          .startDate,
+                                      announcement
+                                          .endDate,
                                     ),
                                     softWrap: true,
-                                    style: const TextStyle(
+                                    style:
+                                    const TextStyle(
                                       color: _navy,
                                       fontSize: 12,
                                       height: 1.5,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight:
+                                      FontWeight
+                                          .w600,
                                     ),
                                   ),
                                 ],
@@ -764,30 +844,44 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      context.read<DashboardBloc>().add(
+                      context
+                          .read<DashboardBloc>()
+                          .add(
                         OnExpandClick(),
                       );
                     },
                     style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF9B5829),
-                      minimumSize: const Size.fromHeight(48),
-                      shape: const RoundedRectangleBorder(),
+                      foregroundColor:
+                      const Color(0xFF9B5829),
+                      minimumSize:
+                      const Size.fromHeight(
+                        48,
+                      ),
+                      shape:
+                      const RoundedRectangleBorder(),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment:
+                      MainAxisAlignment.center,
                       children: [
                         Text(
-                          state.isExpanded ? 'Show less' : 'Read more',
-                          style: const TextStyle(
+                          state.isExpanded
+                              ? 'Show less'
+                              : 'Read more',
+                          style:
+                          const TextStyle(
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                            fontWeight:
+                            FontWeight.w600,
                           ),
                         ),
                         const SizedBox(width: 6),
                         Icon(
                           state.isExpanded
-                              ? Icons.keyboard_arrow_up_rounded
-                              : Icons.keyboard_arrow_down_rounded,
+                              ? Icons
+                              .keyboard_arrow_up_rounded
+                              : Icons
+                              .keyboard_arrow_down_rounded,
                           size: 21,
                         ),
                       ],
@@ -806,14 +900,22 @@ class DashboardScreen extends StatelessWidget {
     return TeachingToolsSection(
       onToolTap: (tool) {
         final route = switch (tool) {
-          TeacherTool.attendance => RouteName.attendanceHistoryScreen,
-          TeacherTool.students => RouteName.myStudentScreen,
-          TeacherTool.assignments => RouteName.homeworkScreen,
-          TeacherTool.submittedHomework => RouteName.submittedHomeworkScreen,
-          TeacherTool.classwork => RouteName.classworkScreen,
-          TeacherTool.assignedClasses => RouteName.assignedClassScreen,
-          TeacherTool.timetable => RouteName.timetableScreen,
-          TeacherTool.studentOrders => RouteName.studentProduct,
+          TeacherTool.attendance =>
+          RouteName.attendanceHistoryScreen,
+          TeacherTool.students =>
+          RouteName.myStudentScreen,
+          TeacherTool.assignments =>
+          RouteName.homeworkScreen,
+          TeacherTool.submittedHomework =>
+          RouteName.submittedHomeworkScreen,
+          TeacherTool.classwork =>
+          RouteName.classworkScreen,
+          TeacherTool.assignedClasses =>
+          RouteName.assignedClassScreen,
+          TeacherTool.timetable =>
+          RouteName.timetableScreen,
+          TeacherTool.studentOrders =>
+          RouteName.studentProduct,
         };
 
         Navigator.of(context).pushNamed(route);
@@ -827,8 +929,6 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-// This is a painter, not a separate header widget.
-// CustomPaint uses it to draw the curved background.
 class _DashboardHeaderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -899,12 +999,16 @@ class _DashboardHeaderPainter extends CustomPainter {
 
     canvas.drawPath(
       lowerWave,
-      Paint()..color = const Color(0xFFBCA9F4).withAlpha(35),
+      Paint()
+        ..color =
+        const Color(0xFFBCA9F4).withAlpha(35),
     );
   }
 
   @override
-  bool shouldRepaint(covariant _DashboardHeaderPainter oldDelegate) {
+  bool shouldRepaint(
+      covariant _DashboardHeaderPainter oldDelegate,
+      ) {
     return false;
   }
 }

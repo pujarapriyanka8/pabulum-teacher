@@ -1,16 +1,16 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:pabulum_teacher/bloc/chat/chat_bloc.dart';
 import 'package:pabulum_teacher/model/chat_detail_model.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
 class ChatDetailScreen extends StatelessWidget {
   const ChatDetailScreen({super.key});
-
-  static const Color _background = Color(0xFFF5F1E9);
-  static const Color _green = Color(0xFF174C43);
-  static const Color _muted = Color(0xFF788781);
 
   @override
   Widget build(BuildContext context) {
@@ -18,69 +18,103 @@ class ChatDetailScreen extends StatelessWidget {
     final studentId = int.tryParse('$arguments');
 
     return Scaffold(
-      backgroundColor: _background,
-      appBar: Utils.customAppBar(
-        'Chat',
-        context,
-        isBack: true,
-        onBackPress: () => Navigator.of(context).pop(),
-      ),
-      body: studentId == null
-          ? const Center(
-        child: Text(
-          'Student ID is missing.',
-          style: TextStyle(
-            color: _green,
-            fontSize: 15,
-          ),
-        ),
-      )
-          : BlocProvider(
-        create: (_) => ChatBloc()
-          ..add(
-            ChatEvent.onLoadMessages(
-              studentId: studentId,
-              page: 1,
+      backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              AppImages.icBackgroundAll,
+              fit: BoxFit.cover,
             ),
           ),
-        child: BlocBuilder<ChatBloc, ChatState>(
-          builder: (context, state) {
-            return Stack(
-              children: [
-                SafeArea(
-                  top: false,
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: 700,
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 700),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
                       ),
-                      child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.stretch,
-                        children: [
-                          _buildStudentHeader(context, state),
-                          Expanded(
-                            child: state.messages.isEmpty
-                                ? state.isLoading
-                                ? const SizedBox.shrink()
-                                : _buildEmptyState(
-                              context,
-                              state,
-                            )
-                                : _buildMessages(context, state),
-                          ),
-                          _buildMessageInput(context, state,studentId),
-                        ],
+                      child: CustomAppBar(
+                        title: 'Chat',
+                        subtitle:
+                        'Connect and communicate\nwith your students.',
+                        image: AppImages.icHomeworkHeader,
                       ),
                     ),
-                  ),
+                    Expanded(
+                      child: studentId == null
+                          ? _buildMissingStudent()
+                          : BlocProvider(
+                        create: (_) => ChatBloc()
+                          ..add(
+                            ChatEvent.onLoadMessages(
+                              studentId: studentId,
+                              page: 1,
+                            ),
+                          ),
+                        child: BlocBuilder<ChatBloc, ChatState>(
+                          builder: (context, state) {
+                            return Stack(
+                              children: [
+                                Column(
+                                  children: [
+                                    _buildStudentHeader(
+                                      context,
+                                      state,
+                                    ),
+                                    Expanded(
+                                      child: state.messages.isEmpty
+                                          ? state.isLoading
+                                          ? const SizedBox.shrink()
+                                          : _buildEmptyState(
+                                        context,
+                                        state,
+                                      )
+                                          : _buildMessages(
+                                        context,
+                                        state,
+                                      ),
+                                    ),
+                                    _buildMessageInput(
+                                      context,
+                                      state,
+                                      studentId,
+                                    ),
+                                  ],
+                                ),
+                                if (state.isLoading)
+                                  Utils.loaderBrier(),
+                                if (state.isLoading)
+                                  Utils.loaderWid(),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                if (state.isLoading) Utils.loaderBrier(),
-                if (state.isLoading) Utils.loaderWid(),
-              ],
-            );
-          },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMissingStudent() {
+    return Center(
+      child: Text(
+        'Student ID is missing.',
+        style: TextStyle(
+          color: AppColors.ink,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -93,8 +127,6 @@ class ChatDetailScreen extends StatelessWidget {
     String studentName = '';
     String profileImage = '';
 
-    // Find the selected student in the API response.
-    // The student can be either the sender or receiver.
     for (final message in state.messages) {
       if (state.studentId != null &&
           int.tryParse('${message.sender?.id}') == state.studentId) {
@@ -103,7 +135,8 @@ class ChatDetailScreen extends StatelessWidget {
         }
 
         if (profileImage.isEmpty) {
-          profileImage = (message.sender?.profileImage ?? '').trim();
+          profileImage =
+              (message.sender?.profileImage ?? '').trim();
         }
       }
 
@@ -114,7 +147,8 @@ class ChatDetailScreen extends StatelessWidget {
         }
 
         if (profileImage.isEmpty) {
-          profileImage = (message.receiver?.profileImage ?? '').trim();
+          profileImage =
+              (message.receiver?.profileImage ?? '').trim();
         }
       }
 
@@ -124,14 +158,24 @@ class ChatDetailScreen extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 12, 14),
-      decoration: const BoxDecoration(
-        color: Color(0xFFFFFCF7),
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFE6E4DA),
-          ),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.purple.withValues(alpha: 0.22),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purple.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -139,42 +183,72 @@ class ChatDetailScreen extends StatelessWidget {
             name: studentName,
             imageUrl: profileImage,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 11),
           Expanded(
-            child: Text(
-              studentName.isNotEmpty
-                  ? studentName
-                  : state.isLoading
-                  ? 'Loading...'
-                  : 'Student',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _green,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  studentName.isNotEmpty
+                      ? studentName
+                      : state.isLoading
+                      ? 'Loading...'
+                      : 'Student',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppColors.ink,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      size: 13,
+                      color: AppColors.purple,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'Student conversation',
+                      style: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          IconButton(
-            tooltip: 'Refresh messages',
-            onPressed: state.isLoading ||
-                state.isLoadingMoreMessages ||
-                state.studentId == null
-                ? null
-                : () {
-              context.read<ChatBloc>().add(
-                ChatEvent.onLoadMessages(
-                  studentId: state.studentId!,
-                  page: 1,
+          Material(
+            color: AppColors.purple.withValues(alpha: 0.09),
+            borderRadius: BorderRadius.circular(11),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(11),
+              onTap: state.isLoading ||
+                  state.isLoadingMoreMessages ||
+                  state.studentId == null
+                  ? null
+                  : () {
+                context.read<ChatBloc>().add(
+                  ChatEvent.onLoadMessages(
+                    studentId: state.studentId!,
+                    page: 1,
+                  ),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(9),
+                child: Icon(
+                  Icons.refresh_rounded,
+                  color: AppColors.purple,
+                  size: 21,
                 ),
-              );
-            },
-            icon: const Icon(
-              Icons.refresh_rounded,
-              color: _green,
-              size: 23,
+              ),
             ),
           ),
         ],
@@ -188,21 +262,29 @@ class ChatDetailScreen extends StatelessWidget {
   }) {
     final fallback = Container(
       alignment: Alignment.center,
-      color: const Color(0xFFDDE9DF),
+      color: AppColors.purple.withValues(alpha: 0.12),
       child: Text(
         name.isEmpty ? 'S' : name.characters.first.toUpperCase(),
-        style: const TextStyle(
-          color: _green,
-          fontSize: 21,
-          fontWeight: FontWeight.w700,
+        style: TextStyle(
+          color: AppColors.purple,
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
 
-    return ClipOval(
-      child: SizedBox(
-        width: 46,
-        height: 46,
+    return Container(
+      width: 46,
+      height: 46,
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: AppColors.purple.withValues(alpha: 0.35),
+          width: 1.5,
+        ),
+      ),
+      child: ClipOval(
         child: imageUrl.isEmpty
             ? fallback
             : Image.network(
@@ -231,8 +313,9 @@ class ChatDetailScreen extends StatelessWidget {
       reverse: true,
       keyboardDismissBehavior:
       ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      itemCount: state.messages.length + (showPageControl ? 1 : 0),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      itemCount:
+      state.messages.length + (showPageControl ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == state.messages.length) {
           return _buildPageControl(context, state);
@@ -253,19 +336,14 @@ class ChatDetailScreen extends StatelessWidget {
     final isMine = state.studentId != null &&
         int.tryParse('${message.receiverId}') == state.studentId;
 
-    final bubbleColor =
-    isMine ? _green : const Color(0xFFFFFCF7);
-
-    final textColor =
-    isMine ? Colors.white : const Color(0xFF283C34);
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return Align(
-            alignment:
-            isMine ? Alignment.centerRight : Alignment.centerLeft,
+            alignment: isMine
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: constraints.maxWidth * 0.82,
@@ -278,28 +356,45 @@ class ChatDetailScreen extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 11,
+                      horizontal: 13,
+                      vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: bubbleColor,
+                      color: isMine
+                          ? AppColors.purple
+                          : AppColors.surface,
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(16),
                         topRight: const Radius.circular(16),
-                        bottomLeft: Radius.circular(isMine ? 16 : 4),
-                        bottomRight: Radius.circular(isMine ? 4 : 16),
+                        bottomLeft:
+                        Radius.circular(isMine ? 16 : 5),
+                        bottomRight:
+                        Radius.circular(isMine ? 5 : 16),
                       ),
                       border: isMine
                           ? null
                           : Border.all(
-                        color: const Color(0xFFE1E5DA),
+                        color: AppColors.purple.withValues(
+                          alpha: 0.18,
+                        ),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.purple.withValues(
+                            alpha: 0.05,
+                          ),
+                          blurRadius: 7,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Text(
                       message.message ?? '',
                       style: TextStyle(
-                        color: textColor,
-                        fontSize: 14,
+                        color: isMine
+                            ? AppColors.white
+                            : AppColors.ink,
+                        fontSize: 13,
                         height: 1.45,
                       ),
                     ),
@@ -308,12 +403,12 @@ class ChatDetailScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 3,
+                        horizontal: 4,
                       ),
                       child: Text(
                         message.createdAt ?? '',
-                        style: const TextStyle(
-                          color: _muted,
+                        style: TextStyle(
+                          color: AppColors.muted,
                           fontSize: 10,
                         ),
                       ),
@@ -333,15 +428,15 @@ class ChatDetailScreen extends StatelessWidget {
       ChatState state,
       ) {
     if (state.isLoadingMoreMessages) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
+      return Padding(
+        padding: const EdgeInsets.all(16),
         child: Center(
           child: SizedBox(
             width: 22,
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: _green,
+              color: AppColors.purple,
             ),
           ),
         ),
@@ -355,12 +450,12 @@ class ChatDetailScreen extends StatelessWidget {
         children: [
           if (state.messageError.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 5),
               child: Text(
                 state.messageError,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: _muted,
+                style: TextStyle(
+                  color: AppColors.muted,
                   fontSize: 12,
                 ),
               ),
@@ -380,7 +475,7 @@ class ChatDetailScreen extends StatelessWidget {
               state.messageError.isNotEmpty
                   ? Icons.refresh_rounded
                   : Icons.expand_less_rounded,
-              size: 20,
+              size: 18,
             ),
             label: Text(
               state.messageError.isNotEmpty
@@ -388,7 +483,11 @@ class ChatDetailScreen extends StatelessWidget {
                   : 'Load more messages',
             ),
             style: TextButton.styleFrom(
-              foregroundColor: _green,
+              foregroundColor: AppColors.purple,
+              textStyle: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -409,39 +508,46 @@ class ChatDetailScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 86,
+              height: 86,
               decoration: BoxDecoration(
-                color: const Color(0xFFDDE2D0),
+                color: AppColors.purple.withValues(alpha: 0.09),
                 borderRadius: BorderRadius.circular(25),
+                border: Border.all(
+                  color: AppColors.purple.withValues(
+                    alpha: 0.18,
+                  ),
+                ),
               ),
               child: Icon(
                 hasError
                     ? Icons.wifi_off_rounded
-                    : Icons.forum_outlined,
-                color: _green,
-                size: 36,
+                    : Icons.mark_chat_unread_rounded,
+                color: AppColors.purple,
+                size: 38,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             Text(
-              hasError ? 'Unable to load chat' : 'No messages yet',
+              hasError
+                  ? 'Unable to load chat'
+                  : 'No messages yet!',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: _green,
-                fontSize: 19,
-                fontWeight: FontWeight.w700,
+              style: TextStyle(
+                color: AppColors.ink,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 7),
             Text(
               hasError
                   ? state.messageError
-                  : 'Your conversation will appear here.',
+                  : 'Start a conversation with your student.\nYour messages will appear here.',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: _muted,
-                fontSize: 13,
+              style: TextStyle(
+                color: AppColors.muted,
+                fontSize: 12,
                 height: 1.5,
               ),
             ),
@@ -461,7 +567,7 @@ class ChatDetailScreen extends StatelessWidget {
                 icon: const Icon(Icons.refresh_rounded),
                 label: const Text('Try again'),
                 style: TextButton.styleFrom(
-                  foregroundColor: _green,
+                  foregroundColor: AppColors.purple,
                 ),
               ),
             ],
@@ -473,21 +579,29 @@ class ChatDetailScreen extends StatelessWidget {
 
   Widget _buildMessageInput(
       BuildContext context,
-      ChatState state, int studentId,
+      ChatState state,
+      int studentId,
       ) {
     final isBusy = state.isSending ||
         state.isLoading ||
         state.isLoadingMoreMessages;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-      decoration: const BoxDecoration(
-        color: Color(0xFFFFFCF7),
-        border: Border(
-          top: BorderSide(
-            color: Color(0xFFE6E4DA),
-          ),
+      margin: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.purple.withValues(alpha: 0.23),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purple.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -500,41 +614,45 @@ class ChatDetailScreen extends StatelessWidget {
               maxLines: 4,
               keyboardType: TextInputType.multiline,
               textInputAction: TextInputAction.newline,
-              textCapitalization: TextCapitalization.sentences,
-              cursorColor: _green,
-              style: const TextStyle(
-                color: _green,
-                fontSize: 14,
+              textCapitalization:
+              TextCapitalization.sentences,
+              cursorColor: AppColors.purple,
+              style: TextStyle(
+                color: AppColors.ink,
+                fontSize: 13,
                 height: 1.4,
               ),
               decoration: InputDecoration(
                 hintText: 'Write a message...',
-                hintStyle: const TextStyle(
-                  color: _muted,
+                hintStyle: TextStyle(
+                  color: AppColors.muted,
                   fontSize: 13,
                 ),
                 filled: true,
-                fillColor: const Color(0xFFF0EFE7),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 13,
+                fillColor: AppColors.background,
+                isDense: true,
+                contentPadding:
+                const EdgeInsets.symmetric(
+                  horizontal: 13,
+                  vertical: 12,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: Color(0xFFE3E3D9),
+                  borderRadius: BorderRadius.circular(13),
+                  borderSide: BorderSide(
+                    color: AppColors.colorGrey1,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: _green,
+                  borderRadius: BorderRadius.circular(13),
+                  borderSide: BorderSide(
+                    color: AppColors.purple,
+                    width: 1.3,
                   ),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 9),
           ValueListenableBuilder<TextEditingValue>(
             valueListenable: state.messageController,
             builder: (context, value, child) {
@@ -542,43 +660,44 @@ class ChatDetailScreen extends StatelessWidget {
                   value.text.trim().isNotEmpty && !isBusy;
 
               return SizedBox(
-                width: 46,
-                height: 46,
+                width: 45,
+                height: 45,
                 child: IconButton(
                   tooltip: 'Send message',
-                  onPressed: state.isSending ||
-                      state.messageController.text.trim().isEmpty
-                      ? null
-                      : () {
+                  onPressed: canSend
+                      ? () {
                     context.read<ChatBloc>().add(
                       ChatEvent.onSendMessage(
                         studentId: studentId,
                       ),
                     );
-                  },
+                  }
+                      : null,
                   style: IconButton.styleFrom(
-                    backgroundColor: _green,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.purple,
+                    foregroundColor: AppColors.white,
                     disabledBackgroundColor:
-                    const Color(0xFFDDE2D0),
+                    AppColors.purple.withValues(
+                      alpha: 0.14,
+                    ),
                     disabledForegroundColor:
-                    const Color(0xFF8A9D8E),
+                    AppColors.muted,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(13),
                     ),
                   ),
                   icon: state.isSending
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
+                      ? SizedBox(
+                    width: 19,
+                    height: 19,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: _green,
+                      color: AppColors.white,
                     ),
                   )
                       : const Icon(
                     Icons.send_rounded,
-                    size: 21,
+                    size: 20,
                   ),
                 ),
               );
@@ -587,4 +706,5 @@ class ChatDetailScreen extends StatelessWidget {
         ],
       ),
     );
-  }}
+  }
+}

@@ -1,153 +1,208 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pabulum_teacher/bloc/login/login_bloc.dart';
 import 'package:pabulum_teacher/component/common_alert_dialog.dart';
 import 'package:pabulum_teacher/model/profile_model.dart';
 import 'package:pabulum_teacher/routes/routes_name.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
 import 'package:pabulum_teacher/utils/app_endpoints.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  static const Color _background = Color(0xFFF5F1E9);
-  static const Color _green = Color(0xFF174C43);
-  static const Color _sage = Color(0xFFDDE2D0);
-
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LoginBloc()..add(OnLoadProfileEvent()),
+      create: (context) =>
+      LoginBloc()..add(OnLoadProfileEvent()),
       child: BlocBuilder<LoginBloc, LoginState>(
         builder: (context, state) {
-          return Stack(
-            children: [
-              Scaffold(
-                backgroundColor: _background,
-                appBar: Utils.customAppBar(
-                  'Profile',
-                  context,
-                  isBack: false,
-                  onBackPress: () {},
-                ),
-                body: SafeArea(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(
-                          20,
-                          20,
-                          20,
-                          16,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight > 36
-                                ? constraints.maxHeight - 36
-                                : 0,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  const SizedBox(height: 28),
-                                  _buildTeacherProfile(state.profileData),
-                                  const SizedBox(height: 22),
-                                  _buildSchool(state.profileData),
-                                  const SizedBox(height: 30),
-                                  const Text(
-                                    'Helpful information',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: _green,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 14),
-                                  _buildMenu(context),
-                                  const SizedBox(height: 18),
-                                  _buildLogout(context),
-                                ],
-                              ),
-                             // _buildBooksDecoration(),
-                              const SizedBox(height: 18),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            bottomNavigationBar: Utils.navigationBar(),
+            body: Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                bottomNavigationBar: Utils.navigationBar(),
-              ),
-              if (state.isLoading) Utils.loaderBrier(),
-              if (state.isLoading) Utils.loaderWid(),
-            ],
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints:
+                      const BoxConstraints(maxWidth: 700),
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding:
+                            const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            child: CustomAppBar(
+                              title: 'My Profile',
+                              subtitle:
+                              'Your teaching profile\nand account settings.',
+                              image: AppImages.icProfileHeader,
+                              showBackButton: false,
+                            ),
+                          ),
+                          Expanded(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return SingleChildScrollView(
+                                  padding:
+                                  const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    18,
+                                  ),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      minHeight:
+                                      constraints.maxHeight,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                      children: [
+                                        _buildTeacherProfile(
+                                          state.profileData,
+                                        ),
+                                        const SizedBox(height: 13),
+                                        _buildSchool(
+                                          state.profileData,
+                                        ),
+                                        const SizedBox(height: 22),
+                                        Padding(
+                                          padding:
+                                          const EdgeInsets.only(
+                                            left: 3,
+                                            bottom: 11,
+                                          ),
+                                          child: Text(
+                                            'Helpful information',
+                                            style: TextStyle(
+                                              color: AppColors.ink,
+                                              fontSize: 17,
+                                              fontWeight:
+                                              FontWeight.w800,
+                                            ),
+                                          ),
+                                        ),
+                                        _buildMenu(context),
+                                        const SizedBox(height: 15),
+                                        _buildLogout(context),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                if (state.isLoading) Utils.loaderBrier(),
+                if (state.isLoading) Utils.loaderWid(),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        _buildPencilDecoration(),
-      ],
-    );
-  }
+  Widget _buildTeacherProfile(
+      ProfileData? profileData,
+      ) {
+    final accent = Utils.getCardBorderColor(0);
 
-  Widget _buildTeacherProfile(ProfileData? profileData) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        _buildProfileImage(
-          name: profileData?.name ?? '',
-          imageUrl: profileData?.profileImage ?? '',
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                (profileData?.role ?? '').toUpperCase(),
-                style: const TextStyle(
-                  color: Color(0xFF537366),
-                  fontSize: 10,
-                  letterSpacing: 1.4,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 7),
-              Text(
-                profileData?.name ?? '',
-                style: const TextStyle(
-                  fontSize: 18,
-                  height: 1.2,
-                  fontWeight: FontWeight.w700,
-                  color: _green,
-                ),
-              ),
-              if (profileData?.email?.isNotEmpty == true) ...[
-                const SizedBox(height: 7),
-                Text(
-                  profileData?.email ?? '',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    height: 1.4,
-                    color: Color(0xFF666864),
+    return _buildBorderCard(
+      accent: accent,
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildProfileImage(
+              name: profileData?.name ?? '',
+              imageUrl: profileData?.profileImage ?? '',
+            ),
+            const SizedBox(width: 13),
+            Expanded(
+              child: Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accent.withValues(
+                        alpha: 0.10,
+                      ),
+                      borderRadius:
+                      BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      (profileData?.role ?? 'Teacher')
+                          .toUpperCase(),
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 10,
+                        letterSpacing: 0.7,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ],
-          ),
+                  const SizedBox(height: 9),
+                  Text(
+                    _displayText(profileData?.name),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.ink,
+                      fontSize: 18,
+                      height: 1.25,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (profileData?.email?.isNotEmpty ==
+                      true) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      profileData?.email ?? '',
+                      softWrap: true,
+                      style: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 12,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -155,25 +210,36 @@ class ProfileScreen extends StatelessWidget {
     required String name,
     required String imageUrl,
   }) {
-    return ClipOval(
-      child: SizedBox(
-        width: 70,
-        height: 70,
-        child: imageUrl.isEmpty
+    return Container(
+      width: 76,
+      height: 76,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: AppColors.purple.withValues(
+            alpha: 0.35,
+          ),
+          width: 2,
+        ),
+      ),
+      child: ClipOval(
+        child: imageUrl.trim().isEmpty
             ? _buildInitials(name)
             : Image.network(
           imageUrl,
           width: 70,
           height: 70,
           fit: BoxFit.cover,
-          loadingBuilder: (context, child, progress) {
+          loadingBuilder:
+              (context, child, progress) {
             if (progress == null) {
               return child;
             }
-
             return _buildInitials(name);
           },
-          errorBuilder: (context, error, stackTrace) {
+          errorBuilder:
+              (context, error, stackTrace) {
             return _buildInitials(name);
           },
         ),
@@ -198,110 +264,160 @@ class ProfileScreen extends StatelessWidget {
 
     return Container(
       alignment: Alignment.center,
-      color: const Color(0xFFD6DDC5),
+      color: Utils.getCardBackgroundColor(0),
       child: Text(
         initials,
-        style: const TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w700,
-          color: _green,
+        style: TextStyle(
+          fontSize: 25,
+          fontWeight: FontWeight.w800,
+          color: AppColors.purple,
         ),
       ),
     );
   }
 
   Widget _buildSchool(ProfileData? profileData) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
-      decoration: BoxDecoration(
-        color: _sage,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: profileData?.school?.profileImage?.isEmpty == true
-                  ? _buildSchoolIcon()
-                  : Image.network(
-                profileData?.school?.profileImage ?? '',
+    final accent = Utils.getCardBorderColor(2);
+
+    return _buildBorderCard(
+      accent: accent,
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              width: 49,
+              height: 49,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: accent.withValues(
+                  alpha: 0.10,
+                ),
+                borderRadius:
+                BorderRadius.circular(12),
+              ),
+              child: profileData
+                  ?.school
+                  ?.profileImage
+                  ?.isNotEmpty ==
+                  true
+                  ? Image.network(
+                profileData!
+                    .school!
+                    .profileImage!,
                 fit: BoxFit.cover,
-                loadingBuilder: (context, child, progress) {
-                  return progress == null ? child : _buildSchoolIcon();
+                loadingBuilder:
+                    (context, child, progress) {
+                  return progress == null
+                      ? child
+                      : _buildSchoolIcon(accent);
                 },
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildSchoolIcon();
+                errorBuilder:
+                    (context, error, stackTrace) {
+                  return _buildSchoolIcon(accent);
                 },
+              )
+                  : _buildSchoolIcon(accent),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'MY SCHOOL',
+                    style: TextStyle(
+                      color: accent,
+                      fontSize: 10,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _displayText(
+                      profileData?.school?.name,
+                    ),
+                    style: TextStyle(
+                      color: AppColors.ink,
+                      fontSize: 15,
+                      height: 1.3,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'MY SCHOOL',
-                  style: TextStyle(
-                    color: Color(0xFF537366),
-                    fontSize: 10,
-                    letterSpacing: 1.1,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  profileData?.school?.name ?? '',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: _green,
-                  ),
-                ),
-              ],
+            const SizedBox(width: 6),
+            Icon(
+              Icons.school_rounded,
+              color: accent,
+              size: 24,
             ),
-          ),
-          const SizedBox(width: 8),
-          const ExcludeSemantics(
-            child: Icon(
-              Icons.auto_awesome_outlined,
-              color: Color(0xFFC79945),
-              size: 22,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSchoolIcon() {
-    return const Center(
+  Widget _buildSchoolIcon(Color color) {
+    return Center(
       child: Icon(
         Icons.school_outlined,
-        color: _green,
-        size: 36,
+        color: color,
+        size: 29,
+      ),
+    );
+  }
+
+  Widget _buildBorderCard({
+    required Color accent,
+    required Widget child,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: accent,
+        borderRadius: BorderRadius.circular(19),
+      ),
+      padding: const EdgeInsets.fromLTRB(
+        1,
+        5,
+        1,
+        1,
+      ),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(13),
+            topRight: Radius.circular(13),
+            bottomLeft: Radius.circular(18),
+            bottomRight: Radius.circular(18),
+          ),
+        ),
+        child: child,
       ),
     );
   }
 
   Widget _buildMenu(BuildContext context) {
-    return Material(
-      color: const Color(0xFFFFFCF7),
-      borderRadius: BorderRadius.circular(18),
+    return Container(
       clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.colorGrey1,
+        ),
+      ),
       child: Column(
         children: [
           _buildMenuRow(
             title: 'Terms & Conditions',
             icon: Icons.description_outlined,
-            iconColor: const Color(0xFF7655CB),
-            iconBackground: const Color(0xFFEDE5FC),
+            accent: Utils.getCardBorderColor(0),
             onTap: () {
               Utils.openUrl(
                 link: AppEndPoints.getTermLink,
@@ -312,11 +428,11 @@ class ProfileScreen extends StatelessWidget {
           _buildMenuRow(
             title: 'Privacy & Security',
             icon: Icons.verified_user_outlined,
-            iconColor: _green,
-            iconBackground: const Color(0xFFE3EFE8),
+            accent: Utils.getCardBorderColor(1),
             onTap: () {
               Utils.openUrl(
-                link: AppEndPoints.getPrivacyPolicyLink,
+                link:
+                AppEndPoints.getPrivacyPolicyLink,
               );
             },
           ),
@@ -324,8 +440,7 @@ class ProfileScreen extends StatelessWidget {
           _buildMenuRow(
             title: 'About Us',
             icon: Icons.info_outline_rounded,
-            iconColor: const Color(0xFF9B6B14),
-            iconBackground: const Color(0xFFFFEFD0),
+            accent: Utils.getCardBorderColor(4),
             onTap: () {
               Utils.openUrl(
                 link: AppEndPoints.getAboutLink,
@@ -340,73 +455,83 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildMenuRow({
     required String title,
     required IconData icon,
-    required Color iconColor,
-    required Color iconBackground,
+    required Color accent,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 13,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: iconBackground,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: _green,
+    return Material(
+      color: AppColors.white,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10,
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: accent.withValues(
+                    alpha: 0.10,
+                  ),
+                  borderRadius:
+                  BorderRadius.circular(11),
+                ),
+                child: Icon(
+                  icon,
+                  color: accent,
+                  size: 22,
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(
-              Icons.chevron_right_rounded,
-              size: 24,
-              color: Color(0xFF9A9C96),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: AppColors.ink,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.muted,
+                size: 23,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildDivider() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 15),
+    return Padding(
+      padding:
+      const EdgeInsets.symmetric(horizontal: 14),
       child: Divider(
         height: 1,
         thickness: 1,
-        color: Color(0xFFE8E4DC),
+        color: AppColors.colorGrey1,
       ),
     );
   }
 
   Widget _buildLogout(BuildContext context) {
+    final accent = Utils.getCardBorderColor(3);
+
     return Material(
-      color: const Color(0xFFFAEBE1),
+      color: AppColors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(13),
-        side: const BorderSide(
-          color: Color(0xFFE39A77),
+        borderRadius: BorderRadius.circular(15),
+        side: BorderSide(
+          color: accent.withValues(
+            alpha: 0.55,
+          ),
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -417,40 +542,60 @@ class ProfileScreen extends StatelessWidget {
             barrierDismissible: false,
             builder: (dialogContext) {
               return CommonAlertDialog(
-                title: "Logout",
-                description: "Are you sure you want to logout?",
-                yesButtonText: "Yes",
-                noButtonText: "No",
+                title: 'Logout',
+                description:
+                'Are you sure you want to logout?',
+                yesButtonText: 'Yes',
+                noButtonText: 'No',
                 onYesPressed: () {
                   clearAllPreferences(context);
                 },
                 onNoPressed: () {
-                  debugPrint("Cancelled");
+                  debugPrint('Cancelled');
                 },
               );
             },
           );
         },
-        child: const Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 16,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 13,
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.logout_rounded,
-                size: 24,
-                color: Color(0xFFA74827),
-              ),
-              SizedBox(width: 18),
-              Text(
-                'Logout',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFA74827),
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: accent.withValues(
+                    alpha: 0.10,
+                  ),
+                  borderRadius:
+                  BorderRadius.circular(11),
                 ),
+                child: Icon(
+                  Icons.logout_rounded,
+                  color: accent,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Logout',
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: accent,
+                size: 23,
               ),
             ],
           ),
@@ -459,8 +604,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Future<void> clearAllPreferences(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> clearAllPreferences(
+      BuildContext context,
+      ) async {
+    final prefs =
+    await SharedPreferences.getInstance();
+
     await prefs.clear();
 
     if (!context.mounted) return;
@@ -471,87 +620,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPencilDecoration() {
-    return ExcludeSemantics(
-      child: SizedBox(
-        width: 70,
-        height: 40,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const Icon(
-              Icons.auto_awesome_outlined,
-              size: 16,
-              color: Color(0xFFC79945),
-            ),
-            const SizedBox(width: 8),
-            Transform.rotate(
-              angle: -0.35,
-              child: const Icon(
-                Icons.edit_outlined,
-                size: 31,
-                color: Color(0xFFD89F58),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return const Column(
-      children: [
-        Text(
-          '© Manovikas Mulyankan Sanstha 2025',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 11,
-            height: 1.5,
-            color: Color(0xFF898B86),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBooksDecoration() {
-    return ExcludeSemantics(
-      child: SizedBox(
-        height: 105,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(bottom: 15),
-              child: Icon(
-                Icons.eco_outlined,
-                size: 42,
-                color: Color(0xFF819B83),
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Icon(
-              Icons.menu_book_rounded,
-              size: 90,
-              color: Color(0xFF819B83),
-            ),
-            const SizedBox(width: 8),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Transform.rotate(
-                angle: 0.65,
-                child: const Icon(
-                  Icons.edit_outlined,
-                  size: 40,
-                  color: Color(0xFFD89F58),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  String _displayText(String? value) {
+    final text = value?.trim() ?? '';
+    return text.isEmpty ? '—' : text;
   }
 }

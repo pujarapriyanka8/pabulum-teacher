@@ -1,8 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:pabulum_teacher/bloc/attendance/attendance_bloc.dart';
 import 'package:pabulum_teacher/model/attendance_detail_model.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
 import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
@@ -15,15 +18,7 @@ class AttendanceDetailsScreen extends StatelessWidget {
     ModalRoute.of(context)!.settings.arguments as num;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      appBar: Utils.customAppBar(
-        'Attendance details',
-        context,
-        isBack: true,
-        onBackPress: () {
-          Navigator.of(context).pop();
-        },
-      ),
+      backgroundColor: AppColors.background,
       body: BlocProvider(
         create: (context) => AttendanceBloc()
           ..add(
@@ -39,124 +34,145 @@ class AttendanceDetailsScreen extends StatelessWidget {
 
             return Stack(
               children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
+                  ),
+                ),
                 SafeArea(
-                  top: false,
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 700),
-                      child: state.isLoading
-                          ? const SizedBox.expand()
-                          : details == null
-                          ? const SizedBox.shrink()
-                          : LayoutBuilder(
-                        builder: (context, constraints) {
-                          return Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              // Summary is separate from the list.
-                              // Limit its height on smaller screens.
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxHeight:
-                                  constraints.maxHeight * 0.60,
-                                ),
-                                child: SingleChildScrollView(
-                                  padding:
-                                  const EdgeInsets.fromLTRB(
-                                    20,
-                                    20,
-                                    20,
-                                    16,
-                                  ),
-                                  child: _buildSummary(details),
-                                ),
-                              ),
-
-                              Padding(
-                                padding:
-                                const EdgeInsets.fromLTRB(
-                                  20,
-                                  4,
-                                  20,
-                                  14,
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Expanded(
-                                      child: Text(
-                                        'Student attendance',
-                                        style: TextStyle(
-                                          color: Color(0xFF202329),
-                                          fontSize: 19,
-                                          fontWeight:
-                                          FontWeight.w700,
+                      constraints:
+                      const BoxConstraints(maxWidth: 700),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            child: CustomAppBar(
+                              title: 'Attendance details',
+                              subtitle:
+                              'View detailed attendance\nfor a specific date',
+                              image:
+                              AppImages.icAttendanceStudent,
+                            ),
+                          ),
+                          if (state.isLoading)
+                            const Expanded(
+                              child: SizedBox.shrink(),
+                            )
+                          else if (details == null)
+                            const Expanded(
+                              child: SizedBox.shrink(),
+                            )
+                          else
+                            Expanded(
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxHeight:
+                                          constraints.maxHeight *
+                                              0.60,
+                                        ),
+                                        child: SingleChildScrollView(
+                                          padding:
+                                          const EdgeInsets.fromLTRB(
+                                            16,
+                                            0,
+                                            16,
+                                            12,
+                                          ),
+                                          child:
+                                          _buildSummary(details),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      '${students.length} students',
-                                      style: const TextStyle(
-                                        color: Color(0xFF737B90),
-                                        fontSize: 12,
+                                      Padding(
+                                        padding:
+                                        const EdgeInsets.fromLTRB(
+                                          18,
+                                          10,
+                                          18,
+                                          12,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                'Student attendance',
+                                                style: TextStyle(
+                                                  color: AppColors.ink,
+                                                  fontSize: 20,
+                                                  fontWeight:
+                                                  FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              '${students.length} students',
+                                              style: TextStyle(
+                                                color: AppColors.muted,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                                      Expanded(
+                                        child: students.isEmpty
+                                            ? Center(
+                                          child: Text(
+                                            'No student attendance available.',
+                                            textAlign:
+                                            TextAlign.center,
+                                            style: TextStyle(
+                                              color:
+                                              AppColors.muted,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        )
+                                            : ListView.builder(
+                                          padding:
+                                          const EdgeInsets.fromLTRB(
+                                            16,
+                                            0,
+                                            16,
+                                            16,
+                                          ),
+                                          itemCount:
+                                          students.length,
+                                          itemBuilder:
+                                              (context, index) {
+                                            final student =
+                                            students[index];
 
-                              // Only student records belong here.
-                              Expanded(
-                                child: students.isEmpty
-                                    ? const Center(
-                                  child: Padding(
-                                    padding:
-                                    EdgeInsets.all(20),
-                                    child: Text(
-                                      'No student attendance available.',
-                                      textAlign:
-                                      TextAlign.center,
-                                      style: TextStyle(
-                                        color:
-                                        Color(0xFF737B90),
+                                            return Padding(
+                                              padding:
+                                              const EdgeInsets.only(
+                                                bottom: 9,
+                                              ),
+                                              child:
+                                              studentAttendanceCard(
+                                                student: student,
+                                              ),
+                                            );
+                                          },
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                )
-                                    : ListView.builder(
-                                  padding:
-                                  const EdgeInsets
-                                      .fromLTRB(
-                                    20,
-                                    0,
-                                    20,
-                                    24,
-                                  ),
-                                  itemCount: students.length,
-                                  itemBuilder:
-                                      (context, index) {
-                                    final student =
-                                    students[index];
-
-                                    return Padding(
-                                      padding:
-                                      const EdgeInsets
-                                          .only(
-                                        bottom: 12,
-                                      ),
-                                      child:
-                                      studentAttendanceCard(
-                                        student: student,
-                                      ),
-                                    );
-                                  },
-                                ),
+                                    ],
+                                  );
+                                },
                               ),
-                            ],
-                          );
-                        },
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -183,68 +199,89 @@ class AttendanceDetailsScreen extends StatelessWidget {
     final percentage =
     total > 0 ? '${(progress * 100).round()}%' : '—';
 
-    const green = Color(0xFF159654);
-    const red = Color(0xFFEF5369);
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(21),
         border: Border.all(
-          color: const Color(0xFFE9E5F5),
+          color: AppColors.colorGrey1,
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08704CFF),
-            blurRadius: 18,
-            offset: Offset(0, 6),
+            color: AppColors.purple.withValues(alpha: 0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Date and percentage in the same row.
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 58,
+                height: 58,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0EBFF),
-                  borderRadius: BorderRadius.circular(14),
+                  color: AppColors.lavender,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
-                  Icons.calendar_month_outlined,
-                  color: Color(0xFF704CFF),
-                  size: 24,
+                child: Icon(
+                  Icons.calendar_month_rounded,
+                  color: AppColors.purple,
+                  size: 29,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  details.date ?? '—',
-                  style: const TextStyle(
-                    color: Color(0xFF202329),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                child: Column(
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _formatDate(details.date ?? '—'),
+                      style: TextStyle(
+                        color: AppColors.ink,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _getWeekday(details.date ?? ''),
+                      style: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Text(
-                percentage,
-                style: const TextStyle(
-                  color: Color(0xFF704CFF),
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                ),
+              Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    percentage,
+                    style: TextStyle(
+                      color: AppColors.purple,
+                      fontSize: 25,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Text(
+                    'Attendance rate',
+                    style: TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 10),
-
+          const SizedBox(height: 15),
           Semantics(
             label: 'Attendance',
             value: total > 0
@@ -252,9 +289,9 @@ class AttendanceDetailsScreen extends StatelessWidget {
                 : 'No students',
             child: ExcludeSemantics(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(10),
                 child: SizedBox(
-                  height: 12,
+                  height: 11,
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final presentWidth =
@@ -265,8 +302,8 @@ class AttendanceDetailsScreen extends StatelessWidget {
                         children: [
                           ColoredBox(
                             color: total > 0
-                                ? red
-                                : const Color(0xFFECEEF3),
+                                ? AppColors.red
+                                : AppColors.lavender,
                           ),
                           if (present > 0)
                             Positioned(
@@ -274,18 +311,18 @@ class AttendanceDetailsScreen extends StatelessWidget {
                               top: 0,
                               bottom: 0,
                               width: presentWidth,
-                              child: const ColoredBox(color: green),
+                              child: ColoredBox(
+                                color: AppColors.green,
+                              ),
                             ),
-
-                          // Thin divider only when both groups exist.
                           if (present > 0 && absent > 0)
                             Positioned(
                               left: presentWidth - 1,
                               top: 0,
                               bottom: 0,
                               width: 2,
-                              child: const ColoredBox(
-                                color: Colors.white,
+                              child: ColoredBox(
+                                color: AppColors.white,
                               ),
                             ),
                         ],
@@ -296,58 +333,57 @@ class AttendanceDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 14),
-
-          // Existing summary tiles.
+          const SizedBox(height: 15),
           LayoutBuilder(
             builder: (context, constraints) {
-              final stackTiles = constraints.maxWidth < 260 ||
-                  MediaQuery.textScalerOf(context).scale(13) > 18;
+              final stackTiles =
+                  constraints.maxWidth < 260 ||
+                      MediaQuery.textScalerOf(context)
+                          .scale(13) >
+                          18;
 
               final tiles = [
                 summaryCount(
                   label: 'Total',
                   value: total,
-                  icon: Icons.people_outline_rounded,
-                  color: const Color(0xFF6340ED),
-                  background: const Color(0xFFF0EBFF),
+                  icon: Icons.groups_rounded,
+                  color: AppColors.purple,
+                  background: AppColors.lavender,
                 ),
                 summaryCount(
                   label: 'Present',
                   value: present,
-                  icon: Icons.check_circle_outline_rounded,
-                  color: green,
-                  background: const Color(0xFFE8F7EF),
+                  icon: Icons.person_rounded,
+                  color: AppColors.green,
+                  background: AppColors.softBlue,
                 ),
                 summaryCount(
                   label: 'Absent',
                   value: absent,
-                  icon: Icons.cancel_outlined,
-                  color: red,
-                  background: const Color(0xFFFFEDF1),
+                  icon: Icons.person_rounded,
+                  color: AppColors.red,
+                  background: AppColors.softPink,
                 ),
               ];
 
               if (stackTiles) {
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     tiles[0],
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     tiles[1],
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     tiles[2],
                   ],
                 );
               }
 
               return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(child: tiles[0]),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(child: tiles[1]),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(child: tiles[2]),
                 ],
               );
@@ -357,6 +393,87 @@ class AttendanceDetailsScreen extends StatelessWidget {
       ),
     );
   }
+
+  String _formatDate(String value) {
+    final date = _parseDate(value);
+    if (date == null) return value;
+
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    return '${date.day.toString().padLeft(2, '0')} '
+        '${months[date.month - 1]} ${date.year}';
+  }
+
+  String _getWeekday(String value) {
+    final date = _parseDate(value);
+    if (date == null) return '';
+
+    const days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
+    return days[date.weekday - 1];
+  }
+
+  DateTime? _parseDate(String value) {
+    final normalized = value.trim();
+    final parsed = DateTime.tryParse(normalized);
+
+    if (parsed != null) return parsed;
+
+    final parts = normalized.split('-');
+    if (parts.length != 3) return null;
+
+    final first = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    final last = int.tryParse(parts[2]);
+
+    if (first == null ||
+        month == null ||
+        last == null) {
+      return null;
+    }
+
+    final yearFirst = parts[0].length == 4;
+    final year = yearFirst ? first : last;
+    final day = yearFirst ? last : first;
+
+    if (month < 1 ||
+        month > 12 ||
+        day < 1 ||
+        day > 31) {
+      return null;
+    }
+
+    final result = DateTime(year, month, day);
+
+    if (result.year != year ||
+        result.month != month ||
+        result.day != day) {
+      return null;
+    }
+
+    return result;
+  }
 }
 
 Widget summaryCount({
@@ -364,37 +481,47 @@ Widget summaryCount({
   required num value,
   required Color color,
   required Color background,
-  IconData? icon, // Keeps existing calls compatible; not displayed.
+  IconData? icon,
 }) {
   return Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: 10,
-      vertical: 10,
-    ),
+    height: 76,
     decoration: BoxDecoration(
-      color: background,
-      borderRadius: BorderRadius.circular(10),
+      color: background.withValues(alpha: 0.75),
+      borderRadius: BorderRadius.circular(15),
     ),
     child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          value.toStringAsFixed(0),
-          style: TextStyle(
+        if (icon != null) ...[
+          Icon(
+            icon,
             color: color,
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
+            size: 22,
           ),
+          const SizedBox(width: 5),
+        ],
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              value.toStringAsFixed(0),
+              style: TextStyle(
+                color: color,
+                fontSize: 24,
+                height: 1,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
         ),
       ],
     ),
@@ -409,16 +536,16 @@ Widget studentAttendanceCard({
   final isAbsent = student.isPresent == 0;
 
   final color = isPresent
-      ? const Color(0xFF159654)
+      ? AppColors.green
       : isAbsent
-      ? const Color(0xFFEF5369)
-      : const Color(0xFF737B90);
+      ? AppColors.red
+      : AppColors.muted;
 
   final background = isPresent
-      ? const Color(0xFFE8F8EF)
+      ? AppColors.softBlue
       : isAbsent
-      ? const Color(0xFFFFEEF1)
-      : const Color(0xFFF0F1F5);
+      ? AppColors.softPink
+      : AppColors.lavender;
 
   final status = isPresent
       ? 'Present'
@@ -428,34 +555,32 @@ Widget studentAttendanceCard({
 
   final statusBadge = Container(
     padding: const EdgeInsets.symmetric(
-      horizontal: 9,
-      vertical: 6,
+      horizontal: 10,
+      vertical: 9,
     ),
     decoration: BoxDecoration(
-      color: background,
-      borderRadius: BorderRadius.circular(10),
+      color: background.withValues(alpha: 0.7),
+      borderRadius: BorderRadius.circular(12),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           isPresent
-              ? Icons.check_circle
+              ? Icons.check_circle_rounded
               : isAbsent
-              ? Icons.cancel
-              : Icons.help_outline,
-          size: 15,
+              ? Icons.cancel_rounded
+              : Icons.help_outline_rounded,
+          size: 18,
           color: color,
         ),
         const SizedBox(width: 5),
-        Flexible(
-          child: Text(
-            status,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+        Text(
+          status,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ],
@@ -463,53 +588,71 @@ Widget studentAttendanceCard({
   );
 
   return Container(
-    padding: const EdgeInsets.all(16),
+    height: 86,
+    padding: const EdgeInsets.symmetric(
+      horizontal: 12,
+    ),
     decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(19),
       border: Border.all(
-        color: const Color(0xFFE6E8F0),
+        color: AppColors.colorGrey1,
       ),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.purple.withValues(alpha: 0.04),
+          blurRadius: 10,
+          offset: const Offset(0, 3),
+        ),
+      ],
     ),
     child: LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 290 ||
-            MediaQuery.textScalerOf(context).scale(14) > 18;
+        final compact =
+            constraints.maxWidth < 290 ||
+                MediaQuery.textScalerOf(context).scale(14) > 18;
 
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _StudentAvatar(imageUrl: user?.profileImage),
+            _StudentAvatar(
+              imageUrl: user?.profileImage,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
                 children: [
                   Text(
                     user?.name ?? 'Unknown student',
-                    style: const TextStyle(
-                      color: Color(0xFF202329),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.ink,
                       fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     'Roll number: ${user?.rollNumber ?? '—'}',
-                    style: const TextStyle(
-                      color: Color(0xFF737B90),
-                      fontSize: 13,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 12,
                     ),
                   ),
                   if (compact) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 5),
                     statusBadge,
                   ],
                 ],
               ),
             ),
             if (!compact) ...[
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               statusBadge,
             ],
           ],
@@ -538,16 +681,19 @@ class _StudentAvatar extends StatelessWidget {
     return ExcludeSemantics(
       child: ClipOval(
         child: SizedBox(
-          width: 46,
-          height: 46,
+          width: 52,
+          height: 52,
           child: url == null || url.isEmpty
               ? _fallback()
               : Image.network(
             url,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => _fallback(),
+            errorBuilder: (_, __, ___) =>
+                _fallback(),
             loadingBuilder: (_, child, progress) {
-              return progress == null ? child : _fallback();
+              return progress == null
+                  ? child
+                  : _fallback();
             },
           ),
         ),

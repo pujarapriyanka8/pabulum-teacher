@@ -1,9 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pabulum_teacher/bloc/assignedclass/assigned_class_bloc.dart';
 import 'package:pabulum_teacher/model/assigned_class_model.dart';
-
-
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
 class AssignedClassesScreen extends StatelessWidget {
@@ -12,17 +14,15 @@ class AssignedClassesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FD),
-      appBar: Utils.customAppBar(
-        'Assigned Classes',
-        context,
-        isBack: true,
-        onBackPress: () => Navigator.of(context).pop(),
-      ),
+      backgroundColor: AppColors.background,
       body: BlocProvider(
         create: (_) => AssignedClassesBloc()
-          ..add( AssignedClassesEvent.onLoadAssignedClasses()),
-        child: BlocBuilder<AssignedClassesBloc, AssignedClassesState>(
+          ..add(
+            AssignedClassesEvent.onLoadAssignedClasses(),
+          ),
+        child: BlocBuilder<
+            AssignedClassesBloc,
+            AssignedClassesState>(
           builder: (context, state) {
             final allGroups = _groupAssignments(
               state.arrAssignedClasses,
@@ -49,7 +49,7 @@ class AssignedClassesScreen extends StatelessWidget {
                   ? group.subjects
                   : group.subjects
                   .where(
-                    (item) => (item.subject?.name??'')
+                    (item) => (item.subject?.name ?? '')
                     .toLowerCase()
                     .contains(query),
               )
@@ -62,7 +62,6 @@ class AssignedClassesScreen extends StatelessWidget {
                     standard: group.standard,
                     division: group.division,
                     subjects: matchingSubjects,
-                    palette: group.palette,
                   ),
                 );
               }
@@ -70,67 +69,84 @@ class AssignedClassesScreen extends StatelessWidget {
 
             final subjectCount = visibleGroups.fold<int>(
               0,
-                  (total, group) => total + group.subjects.length,
+                  (total, group) =>
+              total + group.subjects.length,
             );
 
             return Stack(
               children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
+                  ),
+                ),
                 SafeArea(
-                  top: false,
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 700),
+                      constraints:
+                      const BoxConstraints(maxWidth: 700),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        crossAxisAlignment:
+                        CrossAxisAlignment.stretch,
                         children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            child: CustomAppBar(
+                              title: 'Assigned Classes',
+                              subtitle:
+                              'View your teaching assignments\nacross classes and subjects.',
+                              image: AppImages.icAssignedClass,
+                            ),
+                          ),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(
                               16,
-                              12,
+                              0,
                               16,
                               0,
                             ),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Your teaching assignments',
-                                  style: TextStyle(
-                                    color: Color(0xFF7C879B),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
                                 TextField(
-                                  controller: state.searchController,
+                                  controller:
+                                  state.searchController,
                                   onChanged: (value) {
-                                    context.read<AssignedClassesBloc>().add(
+                                    context
+                                        .read<AssignedClassesBloc>()
+                                        .add(
                                       AssignedClassesEvent
                                           .onSearchAssignedClasses(
                                         query: value,
                                       ),
                                     );
                                   },
-                                  textInputAction: TextInputAction.search,
+                                  textInputAction:
+                                  TextInputAction.search,
                                   onSubmitted: (_) {
-                                    FocusScope.of(context).unfocus();
+                                    FocusScope.of(context)
+                                        .unfocus();
                                   },
-                                  style: const TextStyle(
-                                    color: Color(0xFF142B49),
+                                  style: TextStyle(
+                                    color: AppColors.ink,
                                     fontSize: 14,
                                   ),
                                   decoration: InputDecoration(
                                     hintText:
                                     'Search class, division or subject',
-                                    hintStyle: const TextStyle(
-                                      color: Color(0xFF929CAE),
+                                    hintStyle: TextStyle(
+                                      color: AppColors.muted,
                                       fontSize: 13,
                                     ),
-                                    prefixIcon: const Icon(
+                                    prefixIcon: Icon(
                                       Icons.search_rounded,
-                                      color: Color(0xFF64758D),
-                                      size: 23,
+                                      color: AppColors.purple,
+                                      size: 25,
                                     ),
                                     suffixIcon: state.query.isEmpty
                                         ? null
@@ -138,28 +154,29 @@ class AssignedClassesScreen extends StatelessWidget {
                                       tooltip: 'Clear search',
                                       onPressed: () {
                                         context
-                                            .read<AssignedClassesBloc>()
+                                            .read<
+                                            AssignedClassesBloc>()
                                             .add(
                                           const AssignedClassesEvent
                                               .onClearSearch(),
                                         );
                                       },
-                                      icon: const Icon(
+                                      icon: Icon(
                                         Icons.close_rounded,
-                                        color: Color(0xFF64758D),
-                                        size: 21,
+                                        color: AppColors.muted,
                                       ),
                                     ),
                                     filled: true,
-                                    fillColor: Colors.white,
+                                    fillColor: AppColors.surface,
                                     contentPadding:
                                     const EdgeInsets.symmetric(
                                       horizontal: 14,
-                                      vertical: 14,
+                                      vertical: 16,
                                     ),
+                                    border: _searchBorder(),
                                     enabledBorder: _searchBorder(),
                                     focusedBorder: _searchBorder(
-                                      color: const Color(0xFF8D6BDF),
+                                      color: AppColors.purple,
                                     ),
                                   ),
                                 ),
@@ -167,30 +184,33 @@ class AssignedClassesScreen extends StatelessWidget {
                                 if (!state.isLoading &&
                                     state.errorMessage == null)
                                   Wrap(
-                                    spacing: 10,
+                                    spacing: 9,
                                     runSpacing: 8,
                                     children: [
-                                      _SummaryChip(
+                                      _buildSummaryChip(
                                         label:
                                         '${visibleGroups.length} '
                                             '${visibleGroups.length == 1 ? 'class' : 'classes'}',
                                         background:
-                                        const Color(0xFFE9DFFF),
+                                        const Color(0xFFEDE3FF),
                                         foreground:
-                                        const Color(0xFF6440A9),
+                                        const Color(0xFF7047C6),
+                                        icon: Icons.school_rounded,
                                       ),
-                                      _SummaryChip(
+                                      _buildSummaryChip(
                                         label:
                                         '$subjectCount '
                                             '${subjectCount == 1 ? 'subject assignment' : 'subject assignments'}',
                                         background:
-                                        const Color(0xFFDDF3F1),
+                                        const Color(0xFFDDF6EC),
                                         foreground:
-                                        const Color(0xFF177D79),
+                                        const Color(0xFF279B7B),
+                                        icon:
+                                        Icons.menu_book_rounded,
                                       ),
                                     ],
                                   ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 14),
                               ],
                             ),
                           ),
@@ -199,9 +219,11 @@ class AssignedClassesScreen extends StatelessWidget {
                                 state.arrAssignedClasses.isEmpty
                                 ? const SizedBox.shrink()
                                 : visibleGroups.isEmpty
-                                ? _EmptyState(
-                              isSearching: query.isNotEmpty,
-                              errorMessage: state.errorMessage,
+                                ? _buildEmptyState(
+                              isSearching:
+                              query.isNotEmpty,
+                              errorMessage:
+                              state.errorMessage,
                               onRetry: () {
                                 context
                                     .read<AssignedClassesBloc>()
@@ -215,23 +237,29 @@ class AssignedClassesScreen extends StatelessWidget {
                               keyboardDismissBehavior:
                               ScrollViewKeyboardDismissBehavior
                                   .onDrag,
-                              padding: const EdgeInsets.fromLTRB(
+                              padding:
+                              const EdgeInsets.fromLTRB(
                                 16,
                                 0,
                                 16,
-                                20,
+                                16,
                               ),
-                              itemCount: visibleGroups.length,
-                              itemBuilder: (context, index) {
-                                final group = visibleGroups[index];
+                              itemCount:
+                              visibleGroups.length,
+                              itemBuilder:
+                                  (context, index) {
+                                final group =
+                                visibleGroups[index];
 
                                 return Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 14,
+                                  padding:
+                                  const EdgeInsets.only(
+                                    bottom: 12,
                                   ),
-                                  child: _AssignedClassCard(
-                                    key: ValueKey(group.key),
+                                  child:
+                                  _buildAssignedClassCard(
                                     group: group,
+                                    index: index,
                                   ),
                                 );
                               },
@@ -253,76 +281,74 @@ class AssignedClassesScreen extends StatelessWidget {
   }
 
   OutlineInputBorder _searchBorder({
-    Color color = const Color(0xFFD5DEEB),
+    Color? color,
   }) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: color),
+      borderRadius: BorderRadius.circular(18),
+      borderSide: BorderSide(
+        color: color ?? AppColors.colorGrey1,
+      ),
     );
   }
-}
 
-class _SummaryChip extends StatelessWidget {
-  const _SummaryChip({
-    required this.label,
-    required this.background,
-    required this.foreground,
-  });
-
-  final String label;
-  final Color background;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSummaryChip({
+    required String label,
+    required Color background,
+    required Color foreground,
+    required IconData icon,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 7,
+        horizontal: 11,
+        vertical: 9,
       ),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: foreground,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: foreground.withValues(alpha: 0.15),
         ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: foreground,
+            size: 16,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: foreground,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
-}
 
-class _AssignedClassCard extends StatelessWidget {
-  const _AssignedClassCard({
-    super.key,
-    required this.group,
-  });
-
-  final _ClassGroup group;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = group.palette;
+  Widget _buildAssignedClassCard({
+    required _ClassGroup group,
+    required int index,
+  }) {
+    final accentColor = Utils.getCardBorderColor(index);
     final number = _standardNumber(group.standard);
 
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: palette.background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border(
-          top: BorderSide(color: palette.accent, width: 4),
-          left: BorderSide(color: palette.accent, width: 1),
-          right: BorderSide(color: palette.accent, width: 1),
-          bottom: BorderSide(color: palette.accent, width: 1),
-        ),
+      key: ValueKey(group.key),
+      width: double.infinity,
+      padding: const EdgeInsets.all(13),
+      decoration: Utils.cardDecoration(
+        index: index,
+        radius: 18,
+        topWidth: 6,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 3),
           LayoutBuilder(
@@ -330,37 +356,42 @@ class _AssignedClassCard extends StatelessWidget {
               final heading = Row(
                 children: [
                   Container(
-                    width: 42,
-                    height: 42,
+                    width: 46,
+                    height: 46,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: palette.badge,
-                      borderRadius: BorderRadius.circular(12),
+                      color: accentColor.withValues(
+                        alpha: 0.13,
+                      ),
+                      borderRadius:
+                      BorderRadius.circular(13),
                     ),
                     child: number == null
                         ? Icon(
-                      Icons.school_outlined,
-                      color: palette.foreground,
-                      size: 24,
+                      Icons.school_rounded,
+                      color: accentColor,
+                      size: 25,
                     )
                         : Text(
                       number,
                       style: TextStyle(
-                        color: palette.foreground,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                        color: accentColor,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 11),
                   Expanded(
                     child: Text(
                       _displayText(group.standard),
-                      style: const TextStyle(
-                        color: Color(0xFF142B49),
-                        fontSize: 18,
-                        height: 1.35,
-                        fontWeight: FontWeight.w700,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.ink,
+                        fontSize: 17,
+                        height: 1.25,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),
@@ -373,26 +404,33 @@ class _AssignedClassCard extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: palette.badge,
-                  borderRadius: BorderRadius.circular(11),
+                  color: accentColor.withValues(
+                    alpha: 0.13,
+                  ),
+                  borderRadius:
+                  BorderRadius.circular(11),
                 ),
                 child: Text(
                   'Division ${_displayText(group.division)}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: palette.foreground,
+                    color: accentColor,
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               );
 
-              final stackHeader = constraints.maxWidth < 270 ||
-                  MediaQuery.textScalerOf(context).scale(14) > 19;
+              final stackHeader =
+                  constraints.maxWidth < 270 ||
+                      MediaQuery.textScalerOf(context)
+                          .scale(14) >
+                          19;
 
               if (stackHeader) {
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     heading,
                     const SizedBox(height: 10),
@@ -407,10 +445,11 @@ class _AssignedClassCard extends StatelessWidget {
               return Row(
                 children: [
                   Expanded(child: heading),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   ConstrainedBox(
                     constraints: BoxConstraints(
-                      maxWidth: constraints.maxWidth * 0.4,
+                      maxWidth:
+                      constraints.maxWidth * 0.4,
                     ),
                     child: division,
                   ),
@@ -419,28 +458,40 @@ class _AssignedClassCard extends StatelessWidget {
             },
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 13),
+            padding: const EdgeInsets.symmetric(
+              vertical: 12,
+            ),
             child: Divider(
               height: 1,
-              color: palette.accent.withAlpha(55),
+              color: accentColor.withValues(alpha: 0.20),
             ),
           ),
-          const Text(
-            'Assigned subjects',
-            style: TextStyle(
-              color: Color(0xFF748199),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+          Row(
+            children: [
+              Icon(
+                Icons.auto_stories_rounded,
+                color: accentColor,
+                size: 17,
+              ),
+              const SizedBox(width: 7),
+              Text(
+                'Assigned subjects',
+                style: TextStyle(
+                  color: AppColors.muted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 11),
+          const SizedBox(height: 10),
           Wrap(
-            spacing: 9,
-            runSpacing: 9,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               for (final item in group.subjects)
-                _SubjectChip(
-                  subject: item.subject?.name ?? '',
+                _buildSubjectChip(
+                  item.subject?.name ?? '',
                 ),
             ],
           ),
@@ -448,25 +499,23 @@ class _AssignedClassCard extends StatelessWidget {
       ),
     );
   }
-}
 
-class _SubjectChip extends StatelessWidget {
-  const _SubjectChip({required this.subject});
-
-  final String subject;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSubjectChip(String subject) {
     final style = _subjectStyle(subject);
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
-        vertical: 10,
+        horizontal: 11,
+        vertical: 9,
       ),
       decoration: BoxDecoration(
         color: style.background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+          color: style.foreground.withValues(
+            alpha: 0.12,
+          ),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -474,17 +523,17 @@ class _SubjectChip extends StatelessWidget {
           Icon(
             style.icon,
             color: style.foreground,
-            size: 21,
+            size: 19,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 7),
           Flexible(
             child: Text(
               _displayText(subject),
               softWrap: true,
               style: TextStyle(
                 color: style.foreground,
-                fontSize: 15,
-                height: 1.35,
+                fontSize: 13,
+                height: 1.3,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -493,55 +542,57 @@ class _SubjectChip extends StatelessWidget {
       ),
     );
   }
-}
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.isSearching,
-    required this.errorMessage,
-    required this.onRetry,
-  });
-
-  final bool isSearching;
-  final String? errorMessage;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildEmptyState({
+    required bool isSearching,
+    required String? errorMessage,
+    required VoidCallback onRetry,
+  }) {
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              errorMessage != null
-                  ? Icons.cloud_off_outlined
-                  : isSearching
-                  ? Icons.search_off_rounded
-                  : Icons.school_outlined,
-              color: const Color(0xFF8663C8),
-              size: 36,
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEDE3FF),
+                borderRadius:
+                BorderRadius.circular(22),
+              ),
+              child: Icon(
+                errorMessage != null
+                    ? Icons.cloud_off_outlined
+                    : isSearching
+                    ? Icons.search_off_rounded
+                    : Icons.school_outlined,
+                color: AppColors.purple,
+                size: 34,
+              ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 13),
             Text(
               errorMessage ??
                   (isSearching
                       ? 'No matching classes'
                       : 'No classes assigned yet'),
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF142B49),
+              style: TextStyle(
+                color: AppColors.ink,
                 fontSize: 15,
                 height: 1.4,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w700,
               ),
             ),
             if (errorMessage != null) ...[
               const SizedBox(height: 10),
               TextButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(
+                  Icons.refresh_rounded,
+                ),
                 label: const Text('Retry'),
               ),
             ],
@@ -550,109 +601,144 @@ class _EmptyState extends StatelessWidget {
       ),
     );
   }
+
+  List<_ClassGroup> _groupAssignments(
+      List<AssignedClassData> assignments,
+      ) {
+    final grouped =
+    <String, List<AssignedClassData>>{};
+
+    for (final item in assignments) {
+      final standardKey =
+          (item.standardId ?? item.standard?.id)
+              ?.toString() ??
+              'name:${item.standard?.name ?? ''}';
+
+      final divisionKey =
+          (item.divisionId ?? item.division?.id)
+              ?.toString() ??
+              'name:${item.division?.name ?? ''}';
+
+      final key = '${item.academicYearId ?? ''}'
+          '\u0000$standardKey\u0000$divisionKey';
+
+      grouped.putIfAbsent(key, () => []).add(item);
+    }
+
+    final result = <_ClassGroup>[];
+
+    for (final entry in grouped.entries) {
+      final first = entry.value.first;
+
+      final uniqueSubjects =
+      <String, AssignedClassData>{};
+
+      for (final item in entry.value) {
+        final subjectKey =
+            (item.subjectId ?? item.subject?.id)
+                ?.toString() ??
+                'name:${item.subject?.name ?? ''}';
+
+        uniqueSubjects.putIfAbsent(
+          subjectKey,
+              () => item,
+        );
+      }
+
+      result.add(
+        _ClassGroup(
+          key: entry.key,
+          standard: first.standard?.name ?? '',
+          division: first.division?.name ?? '',
+          subjects: uniqueSubjects.values.toList(),
+        ),
+      );
+    }
+
+    return result;
+  }
+
+  _SubjectStyle _subjectStyle(String subject) {
+    final value = subject.trim().toLowerCase();
+
+    if (value.contains('ગણિત') ||
+        value.contains('math')) {
+      return const _SubjectStyle(
+        icon: Icons.calculate_outlined,
+        background: Color(0xFFDDE7FF),
+        foreground: Color(0xFF24579C),
+      );
+    }
+
+    if (value.contains('વિજ્ઞાન') ||
+        value.contains('વિગ્નાન') ||
+        value.contains('science')) {
+      return const _SubjectStyle(
+        icon: Icons.science_outlined,
+        background: Color(0xFFFFECDD),
+        foreground: Color(0xFF945C32),
+      );
+    }
+
+    if (value.contains('english') ||
+        value.contains('અંગ્રેજી')) {
+      return const _SubjectStyle(
+        icon: Icons.menu_book_rounded,
+        background: Color(0xFFECE0FC),
+        foreground: Color(0xFF7444AA),
+      );
+    }
+
+    return const _SubjectStyle(
+      icon: Icons.menu_book_rounded,
+      background: Color(0xFFDFF4E8),
+      foreground: Color(0xFF177B68),
+    );
+  }
+
+  String? _standardNumber(String standard) {
+    const gujaratiDigits = '૦૧૨૩૪૫૬૭૮૯';
+    var normalized = standard;
+
+    for (var index = 0;
+    index < gujaratiDigits.length;
+    index++) {
+      normalized = normalized.replaceAll(
+        gujaratiDigits[index],
+        index.toString(),
+      );
+    }
+
+    final match =
+    RegExp(r'\d+').firstMatch(normalized);
+
+    if (match == null) return null;
+
+    final number =
+    int.tryParse(match.group(0)!);
+
+    return number?.toString().padLeft(2, '0');
+  }
+
+  String _displayText(String value) {
+    final text = value.trim();
+    return text.isEmpty ? '—' : text;
+  }
 }
 
-// Presentation grouping only; the original API models stay unchanged.
 class _ClassGroup {
   const _ClassGroup({
     required this.key,
     required this.standard,
     required this.division,
     required this.subjects,
-    required this.palette,
   });
 
   final String key;
   final String standard;
   final String division;
   final List<AssignedClassData> subjects;
-  final _ClassPalette palette;
 }
-
-List<_ClassGroup> _groupAssignments(
-    List<AssignedClassData> assignments,
-    ) {
-  final grouped = <String, List<AssignedClassData>>{};
-
-  for (final item in assignments) {
-    final standardKey =
-        (item.standardId ?? item.standard?.id)?.toString() ??
-            'name:${item.standard?.name ?? ''}';
-
-    final divisionKey =
-        (item.divisionId ?? item.division?.id)?.toString() ??
-            'name:${item.division?.name ?? ''}';
-
-    final key = '${item.academicYearId ?? ''}'
-        '\u0000$standardKey\u0000$divisionKey';
-
-    grouped.putIfAbsent(key, () => []).add(item);
-  }
-
-  final result = <_ClassGroup>[];
-
-  for (final entry in grouped.entries) {
-    final first = entry.value.first;
-
-    // Avoid duplicate chips for repeated copies of the same assignment.
-    final uniqueSubjects = <String, AssignedClassData>{};
-
-    for (final item in entry.value) {
-      final subjectKey =
-          (item.subjectId ?? item.subject?.id)?.toString() ??
-              'name:${item.subject?.name ?? ''}';
-
-      uniqueSubjects.putIfAbsent(subjectKey, () => item);
-    }
-
-    result.add(
-      _ClassGroup(
-        key: entry.key,
-        standard: first.standard?.name ?? '',
-        division: first.division?.name ?? '',
-        subjects: uniqueSubjects.values.toList(),
-        palette: _classPalettes[result.length % _classPalettes.length],
-      ),
-    );
-  }
-
-  return result;
-}
-
-class _ClassPalette {
-  const _ClassPalette({
-    required this.background,
-    required this.accent,
-    required this.badge,
-    required this.foreground,
-  });
-
-  final Color background;
-  final Color accent;
-  final Color badge;
-  final Color foreground;
-}
-
-const _classPalettes = [
-  _ClassPalette(
-    background: Color(0xFFF6F1FF),
-    accent: Color(0xFFA787F3),
-    badge: Color(0xFFE3D7FC),
-    foreground: Color(0xFF573295),
-  ),
-  _ClassPalette(
-    background: Color(0xFFF0F7FF),
-    accent: Color(0xFF6EA4F1),
-    badge: Color(0xFFD9E7FF),
-    foreground: Color(0xFF24589C),
-  ),
-  _ClassPalette(
-    background: Color(0xFFEDF9F4),
-    accent: Color(0xFF63BDA0),
-    badge: Color(0xFFCEF0E3),
-    foreground: Color(0xFF247B60),
-  ),
-];
 
 class _SubjectStyle {
   const _SubjectStyle({
@@ -664,63 +750,4 @@ class _SubjectStyle {
   final IconData icon;
   final Color background;
   final Color foreground;
-}
-
-_SubjectStyle _subjectStyle(String subject) {
-  final value = subject.trim().toLowerCase();
-
-  if (value.contains('ગણિત') || value.contains('math')) {
-    return const _SubjectStyle(
-      icon: Icons.calculate_outlined,
-      background: Color(0xFFDDE7FF),
-      foreground: Color(0xFF24579C),
-    );
-  }
-
-  if (value.contains('વિજ્ઞાન') ||
-      value.contains('વિગ્નાન') ||
-      value.contains('science')) {
-    return const _SubjectStyle(
-      icon: Icons.science_outlined,
-      background: Color(0xFFFFECDD),
-      foreground: Color(0xFF945C32),
-    );
-  }
-
-  if (value.contains('english') || value.contains('અંગ્રેજી')) {
-    return const _SubjectStyle(
-      icon: Icons.menu_book_rounded,
-      background: Color(0xFFECE0FC),
-      foreground: Color(0xFF7444AA),
-    );
-  }
-
-  return const _SubjectStyle(
-    icon: Icons.menu_book_rounded,
-    background: Color(0xFFDFF4E8),
-    foreground: Color(0xFF177B68),
-  );
-}
-
-String? _standardNumber(String standard) {
-  const gujaratiDigits = '૦૧૨૩૪૫૬૭૮૯';
-  var normalized = standard;
-
-  for (var index = 0; index < gujaratiDigits.length; index++) {
-    normalized = normalized.replaceAll(
-      gujaratiDigits[index],
-      index.toString(),
-    );
-  }
-
-  final match = RegExp(r'\d+').firstMatch(normalized);
-  if (match == null) return null;
-
-  final number = int.tryParse(match.group(0)!);
-  return number?.toString().padLeft(2, '0');
-}
-
-String _displayText(String value) {
-  final text = value.trim();
-  return text.isEmpty ? '—' : text;
 }

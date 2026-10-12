@@ -1,21 +1,17 @@
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
 import 'package:pabulum_teacher/bloc/addwork/add_work_bloc.dart';
 import 'package:pabulum_teacher/model/workoption_model.dart';
-import 'package:pabulum_teacher/utils/utils.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 
 class AddHomeworkScreen extends StatelessWidget {
   const AddHomeworkScreen({super.key});
-
-  static const _primary = Color(0xFF7655E8);
-  static const _text = Color(0xFF192841);
-  static const _muted = Color(0xFF788198);
-  static const _border = Color(0xFFE2E5EF);
-  static const _background = Color(0xFFF6F5FC);
 
   @override
   Widget build(BuildContext context) {
@@ -38,71 +34,79 @@ class AddHomeworkScreen extends StatelessWidget {
           return PopScope(
             canPop: !state.isSubmitting,
             child: Scaffold(
-              backgroundColor: _background,
-              appBar: Utils.customAppBar('Add Homework', context, isBack: true, onBackPress: (){
-                Navigator.pop(context);
-              }),
-              body: SafeArea(
-                top: false,
-                child: AbsorbPointer(
-                  absorbing: state.isSubmitting || state.isSubmitted,
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-                    keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                    children: [
-                      _details(context, state),
-                      const SizedBox(height: 16),
-                      _classAndSubject(context, state),
-                      const SizedBox(height: 16),
-                      _content(state),
-                      const SizedBox(height: 16),
-                      _attachments(context, state),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: busy
-                            ? null
-                            : () {
-                          FocusManager.instance.primaryFocus
-                              ?.unfocus();
-
-                          context.read<AddWorkBloc>().add(
-                            const AddWorkEvent.onSubmitHomework(),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _primary,
-                          foregroundColor: Colors.white,
-                          disabledBackgroundColor:
-                          const Color(0xFFE5DDF9),
-                          disabledForegroundColor: _muted,
-                          elevation: 0,
-                          minimumSize: const Size.fromHeight(52),
-                          padding: const EdgeInsets.all(15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                        child: state.isSubmitting
-                            ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child: CircularProgressIndicator(
-                            color: _primary,
-                            strokeWidth: 2,
-                          ),
-                        )
-                            : const Text(
-                          'Add Homework',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
+              backgroundColor: AppColors.background,
+              body: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Image.asset(
+                      AppImages.icBackgroundAll,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  SafeArea(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints:
+                        const BoxConstraints(maxWidth: 700),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: CustomAppBar(
+                                title: 'Add Homework',
+                                subtitle:
+                                'Create and share homework\nwith your students.',
+                                image: AppImages.icHomeworkHeader,
+                              ),
+                            ),
+                            Expanded(
+                              child: AbsorbPointer(
+                                absorbing: state.isSubmitting ||
+                                    state.isSubmitted,
+                                child: ListView(
+                                  keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior
+                                      .onDrag,
+                                  padding:
+                                  const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    22,
+                                  ),
+                                  children: [
+                                    _details(context, state),
+                                    const SizedBox(height: 13),
+                                    _classAndSubject(
+                                      context,
+                                      state,
+                                    ),
+                                    const SizedBox(height: 13),
+                                    _content(state),
+                                    const SizedBox(height: 13),
+                                    _attachments(
+                                      context,
+                                      state,
+                                    ),
+                                    const SizedBox(height: 18),
+                                    _submitButton(
+                                      context,
+                                      state,
+                                      busy,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           );
@@ -111,39 +115,50 @@ class AddHomeworkScreen extends StatelessWidget {
     );
   }
 
-  Widget _details(BuildContext context, AddWorkState state) {
+  Widget _details(
+      BuildContext context,
+      AddWorkState state,
+      ) {
     return _section(
       title: 'Homework details',
-      icon: Icons.edit_note_rounded,
-      headerColor: const Color(0xFFECE5FF),
-      iconColor: _primary,
+      icon: Icons.menu_book_rounded,
+      sectionColor: AppColors.purple,
       children: [
         _textField(
           controller: state.titleController,
           label: 'Homework title *',
           hint: 'Enter homework title',
+          suffixIcon: Icons.book_outlined,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 13),
         _dateField(
           label: 'Start date *',
           value: state.workDate,
-          onTap: () => _pickStartDate(context, state),
+          hint: 'Select start date',
+          onTap: () => _pickStartDate(
+            context,
+            state,
+          ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 13),
         _dateField(
           label: 'Due date *',
           value: state.dueDate,
+          hint: 'Select due date',
           onTap: state.workDate == null
               ? null
-              : () => _pickDueDate(context, state),
+              : () => _pickDueDate(
+            context,
+            state,
+          ),
         ),
         if (state.workDate == null) ...[
-          const SizedBox(height: 8),
-          const Text(
+          const SizedBox(height: 7),
+          Text(
             'Select the start date before the due date.',
             style: TextStyle(
-              color: _muted,
-              fontSize: 12,
+              color: AppColors.muted,
+              fontSize: 11,
               height: 1.4,
             ),
           ),
@@ -152,23 +167,29 @@ class AddHomeworkScreen extends StatelessWidget {
     );
   }
 
-  Widget _classAndSubject(BuildContext context, AddWorkState state) {
+  Widget _classAndSubject(
+      BuildContext context,
+      AddWorkState state,
+      ) {
     final bloc = context.read<AddWorkBloc>();
-    final enabled = !state.isLoading && !state.isLoadingOptions;
+
+    final enabled =
+        !state.isLoading && !state.isLoadingOptions;
 
     return _section(
       title: 'Class & subject',
-      icon: Icons.menu_book_rounded,
-      headerColor: const Color(0xFFE5EFFF),
-      iconColor: const Color(0xFF4672B5),
+      icon: Icons.auto_stories_rounded,
+      sectionColor: AppColors.colorPrimaryBlue,
       children: [
-        if (state.isLoading || state.isLoadingOptions) ...[
-          const LinearProgressIndicator(
+        if (state.isLoading ||
+            state.isLoadingOptions) ...[
+          LinearProgressIndicator(
             minHeight: 3,
-            color: _primary,
-            backgroundColor: Color(0xFFEDE7FB),
+            color: AppColors.purple,
+            backgroundColor:
+            AppColors.purple.withValues(alpha: 0.10),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 13),
         ],
         _dropdown(
           label: 'Standard *',
@@ -179,21 +200,29 @@ class AddHomeworkScreen extends StatelessWidget {
               : 'Select standard',
           enabled: enabled,
           onChanged: (id) => bloc.add(
-            AddWorkEvent.onSelectStandard(standardId: id),
+            AddWorkEvent.onSelectStandard(
+              standardId: id,
+            ),
           ),
         ),
-        if (!state.isLoading && state.standards.isEmpty)
+        if (!state.isLoading &&
+            state.standards.isEmpty)
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
               onPressed: enabled
-                  ? () => bloc.add(const AddWorkEvent.onLoadStandards())
+                  ? () => bloc.add(
+                const AddWorkEvent.onLoadStandards(),
+              )
                   : null,
-              icon: const Icon(Icons.refresh_rounded, size: 18),
+              icon: const Icon(
+                Icons.refresh_rounded,
+                size: 18,
+              ),
               label: const Text('Reload standards'),
             ),
           ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 13),
         _dropdown(
           label: 'Division *',
           items: state.divisions,
@@ -203,10 +232,12 @@ class AddHomeworkScreen extends StatelessWidget {
               : 'Select division',
           enabled: enabled && state.standardId != null,
           onChanged: (id) => bloc.add(
-            AddWorkEvent.onSelectDivision(divisionId: id),
+            AddWorkEvent.onSelectDivision(
+              divisionId: id,
+            ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 13),
         _dropdown(
           label: 'Subject *',
           items: state.subjects,
@@ -216,10 +247,12 @@ class AddHomeworkScreen extends StatelessWidget {
               : 'Select subject',
           enabled: enabled && state.standardId != null,
           onChanged: (id) => bloc.add(
-            AddWorkEvent.onSelectSubject(subjectId: id),
+            AddWorkEvent.onSelectSubject(
+              subjectId: id,
+            ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 13),
         _dropdown(
           label: 'Lesson *',
           items: state.lessons,
@@ -229,10 +262,12 @@ class AddHomeworkScreen extends StatelessWidget {
               : 'Select lesson',
           enabled: enabled && state.subjectId != null,
           onChanged: (id) => bloc.add(
-            AddWorkEvent.onSelectLesson(lessonId: id),
+            AddWorkEvent.onSelectLesson(
+              lessonId: id,
+            ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 13),
         _dropdown(
           label: 'Topic *',
           items: state.topics,
@@ -242,7 +277,9 @@ class AddHomeworkScreen extends StatelessWidget {
               : 'Select topic',
           enabled: enabled && state.lessonId != null,
           onChanged: (id) => bloc.add(
-            AddWorkEvent.onSelectTopic(topicId: id),
+            AddWorkEvent.onSelectTopic(
+              topicId: id,
+            ),
           ),
         ),
       ],
@@ -253,17 +290,16 @@ class AddHomeworkScreen extends StatelessWidget {
     return _section(
       title: 'Homework content',
       icon: Icons.description_outlined,
-      headerColor: const Color(0xFFFFEBDD),
-      iconColor: const Color(0xFFA96A3E),
+      sectionColor: AppColors.colorPrimaryOrange,
       children: [
         _textField(
           controller: state.instructionsController,
           label: 'Instructions',
-          hint: 'Write homework instructions…',
+          hint: 'Write homework instructions...',
           minLines: 4,
           maxLines: 8,
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 13),
         _textField(
           controller: state.youtubeController,
           label: 'YouTube URL',
@@ -275,12 +311,14 @@ class AddHomeworkScreen extends StatelessWidget {
     );
   }
 
-  Widget _attachments(BuildContext context, AddWorkState state) {
+  Widget _attachments(
+      BuildContext context,
+      AddWorkState state,
+      ) {
     return _section(
       title: 'Attachments',
       icon: Icons.attach_file_rounded,
-      headerColor: const Color(0xFFDFF3E9),
-      iconColor: const Color(0xFF178564),
+      sectionColor: AppColors.green,
       children: [
         _attachment(
           context,
@@ -288,37 +326,37 @@ class AddHomeworkScreen extends StatelessWidget {
           label: 'Image',
           subtitle: 'JPG, JPEG or PNG',
           icon: Icons.image_outlined,
-          color: _primary,
+          color: AppColors.purple,
           type: WorkAttachmentType.image,
           path: state.imagePath,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 9),
         _attachment(
           context,
           state,
           label: 'PDF document',
           subtitle: 'Select a PDF document',
           icon: Icons.picture_as_pdf_outlined,
-          color: const Color(0xFFC94E70),
+          color: AppColors.red,
           type: WorkAttachmentType.pdf,
           path: state.pdfPath,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 9),
         _attachment(
           context,
           state,
           label: 'Audio',
           subtitle: 'MP3, M4A, WAV or AAC',
-          icon: Icons.music_note_outlined,
-          color: const Color(0xFF178564),
+          icon: Icons.music_note_rounded,
+          color: AppColors.green,
           type: WorkAttachmentType.audio,
           path: state.audioPath,
         ),
         if (state.isPickingAttachment) ...[
           const SizedBox(height: 12),
-          const LinearProgressIndicator(
+          LinearProgressIndicator(
             minHeight: 3,
-            color: _primary,
+            color: AppColors.purple,
           ),
         ],
       ],
@@ -328,20 +366,23 @@ class AddHomeworkScreen extends StatelessWidget {
   Widget _section({
     required String title,
     required IconData icon,
-    required Color headerColor,
-    required Color iconColor,
+    required Color sectionColor,
     required List<Widget> children,
   }) {
     return Container(
+      width: double.infinity,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: sectionColor.withValues(alpha: 0.25),
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x08493978),
-            blurRadius: 12,
-            offset: Offset(0, 3),
+            color: AppColors.purple.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -350,21 +391,36 @@ class AddHomeworkScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(
-              horizontal: 14,
+              horizontal: 13,
               vertical: 12,
             ),
-            color: headerColor,
+            color: sectionColor.withValues(alpha: 0.12),
             child: Row(
               children: [
-                Icon(icon, color: iconColor, size: 21),
-                const SizedBox(width: 10),
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color:
+                    sectionColor.withValues(alpha: 0.13),
+                    borderRadius:
+                    BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: sectionColor,
+                    size: 21,
+                  ),
+                ),
+                const SizedBox(width: 9),
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      color: _text,
+                    style: TextStyle(
+                      color: AppColors.ink,
                       fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
@@ -372,9 +428,10 @@ class AddHomeworkScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(13),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment:
+              CrossAxisAlignment.stretch,
               children: children,
             ),
           ),
@@ -385,13 +442,13 @@ class AddHomeworkScreen extends StatelessWidget {
 
   Widget _label(String label) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 7),
       child: Text(
         label,
-        style: const TextStyle(
-          color: _text,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
+        style: TextStyle(
+          color: AppColors.ink,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
           height: 1.3,
         ),
       ),
@@ -406,6 +463,7 @@ class AddHomeworkScreen extends StatelessWidget {
     int maxLines = 1,
     TextInputType? keyboardType,
     IconData? prefixIcon,
+    IconData? suffixIcon,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -419,38 +477,59 @@ class AddHomeworkScreen extends StatelessWidget {
               (maxLines > 1
                   ? TextInputType.multiline
                   : TextInputType.text),
-          style: const TextStyle(
-            color: _text,
-            fontSize: 14,
-            height: 1.5,
+          style: TextStyle(
+            color: AppColors.ink,
+            fontSize: 13,
+            height: 1.4,
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              color: _muted,
+            hintStyle: TextStyle(
+              color: AppColors.muted,
               fontSize: 13,
             ),
             filled: true,
-            fillColor: const Color(0xFFFCFCFF),
+            fillColor: AppColors.surface,
             isDense: true,
-            contentPadding: const EdgeInsets.all(13),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 13,
+              vertical: 13,
+            ),
             prefixIcon: prefixIcon == null
                 ? null
-                : Icon(prefixIcon, color: _muted, size: 21),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _border),
+                : Icon(
+              prefixIcon,
+              color: AppColors.purple,
+              size: 21,
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: _primary,
-                width: 1.4,
-              ),
+            suffixIcon: suffixIcon == null
+                ? null
+                : Icon(
+              suffixIcon,
+              color: AppColors.purple,
+              size: 20,
+            ),
+            enabledBorder: _inputBorder(),
+            focusedBorder: _inputBorder(
+              color: AppColors.purple,
+              width: 1.4,
             ),
           ),
         ),
       ],
+    );
+  }
+
+  OutlineInputBorder _inputBorder({
+    Color? color,
+    double width = 1,
+  }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: color ?? AppColors.colorGrey1,
+        width: width,
+      ),
     );
   }
 
@@ -463,42 +542,54 @@ class AddHomeworkScreen extends StatelessWidget {
     required ValueChanged<int> onChanged,
   }) {
     final canSelect = enabled && items.isNotEmpty;
+
     final selectedValue =
-    items.any((item) => item.id == value) ? value : null;
+    items.any((item) => item.id == value)
+        ? value
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _label(label),
         Container(
-          constraints: const BoxConstraints(minHeight: 52),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          constraints: const BoxConstraints(
+            minHeight: 49,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+          ),
           decoration: BoxDecoration(
             color: canSelect
-                ? const Color(0xFFFCFCFF)
-                : const Color(0xFFF4F5F8),
+                ? AppColors.surface
+                : AppColors.background,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _border),
+            border: Border.all(
+              color: AppColors.colorGrey1,
+            ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<int>(
               value: selectedValue,
               isExpanded: true,
-              isDense: false,
               itemHeight: null,
-              dropdownColor: Colors.white,
+              dropdownColor: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
               icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                size: 22,
-                color: canSelect ? _primary : _muted,
+                size: 23,
+                color: canSelect
+                    ? AppColors.purple
+                    : AppColors.muted,
               ),
               hint: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 11,
+                ),
                 child: Text(
                   hint,
-                  style: const TextStyle(
-                    color: _muted,
+                  style: TextStyle(
+                    color: AppColors.muted,
                     fontSize: 13,
                   ),
                 ),
@@ -508,16 +599,18 @@ class AddHomeworkScreen extends StatelessWidget {
                   return Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 11,
+                      ),
                       child: Text(
                         item.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: _text,
-                          fontSize: 14,
+                        style: TextStyle(
+                          color: AppColors.ink,
+                          fontSize: 13,
                           height: 1.4,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -528,12 +621,14 @@ class AddHomeworkScreen extends StatelessWidget {
                 return DropdownMenuItem<int>(
                   value: item.id,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 11,
+                    ),
                     child: Text(
                       item.name,
-                      style: const TextStyle(
-                        color: _text,
-                        fontSize: 14,
+                      style: TextStyle(
+                        color: AppColors.ink,
+                        fontSize: 13,
                         height: 1.4,
                       ),
                     ),
@@ -557,6 +652,7 @@ class AddHomeworkScreen extends StatelessWidget {
   Widget _dateField({
     required String label,
     required DateTime? value,
+    required String hint,
     required VoidCallback? onTap,
   }) {
     return Column(
@@ -565,36 +661,47 @@ class AddHomeworkScreen extends StatelessWidget {
         _label(label),
         Material(
           color: onTap == null
-              ? const Color(0xFFF4F5F8)
-              : const Color(0xFFFCFCFF),
+              ? AppColors.background
+              : AppColors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: _border),
+            side: BorderSide(
+              color: AppColors.colorGrey1,
+            ),
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 13,
+                vertical: 13,
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       value == null
-                          ? 'Select date'
+                          ? hint
                           : DateFormat('dd MMM yyyy').format(value),
                       style: TextStyle(
-                        color: value == null ? _muted : _text,
-                        fontSize: 14,
-                        height: 1.4,
+                        color: value == null
+                            ? AppColors.muted
+                            : AppColors.ink,
+                        fontSize: 13,
+                        fontWeight: value == null
+                            ? FontWeight.w400
+                            : FontWeight.w600,
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Icon(
-                    Icons.calendar_month_outlined,
+                    Icons.calendar_month_rounded,
                     size: 21,
-                    color: onTap == null ? _muted : _primary,
+                    color: onTap == null
+                        ? AppColors.muted
+                        : AppColors.purple,
                   ),
                 ],
               ),
@@ -616,6 +723,7 @@ class AddHomeworkScreen extends StatelessWidget {
         required String? path,
       }) {
     final hasFile = path != null && path.isNotEmpty;
+
     final disabled = state.isPickingAttachment ||
         state.isLoading ||
         state.isLoadingOptions;
@@ -623,64 +731,81 @@ class AddHomeworkScreen extends StatelessWidget {
     final bloc = context.read<AddWorkBloc>();
 
     return Material(
-      color: const Color(0xFFFCFCFF),
+      color: AppColors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: _border),
+        borderRadius: BorderRadius.circular(13),
+        side: BorderSide(
+          color: AppColors.colorGrey1,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: disabled
             ? null
             : () => bloc.add(
-          AddWorkEvent.onPickAttachment(type: type),
+          AddWorkEvent.onPickAttachment(
+            type: type,
+          ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 11,
+            vertical: 10,
+          ),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 43,
+                height: 43,
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.09),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                child: hasFile && type == WorkAttachmentType.image
+                child: hasFile &&
+                    type == WorkAttachmentType.image
                     ? Image.file(
                   File(path!),
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Icon(icon, color: color, size: 23),
+                  errorBuilder: (_, __, ___) => Icon(
+                    icon,
+                    color: color,
+                    size: 24,
+                  ),
                 )
-                    : Icon(icon, color: color, size: 23),
+                    : Icon(
+                  icon,
+                  color: color,
+                  size: 24,
+                ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 11),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
                     Text(
                       hasFile
-                          ? path!.replaceAll('\\', '/').split('/').last
+                          ? path!
+                          .replaceAll('\\', '/')
+                          .split('/')
+                          .last
                           : 'Choose $label',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: _text,
+                      style: TextStyle(
+                        color: AppColors.ink,
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        height: 1.4,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       hasFile ? 'Tap to replace' : subtitle,
-                      style: const TextStyle(
-                        color: _muted,
+                      style: TextStyle(
+                        color: AppColors.muted,
                         fontSize: 11,
-                        height: 1.4,
                       ),
                     ),
                   ],
@@ -692,20 +817,97 @@ class AddHomeworkScreen extends StatelessWidget {
                   onPressed: disabled
                       ? null
                       : () => bloc.add(
-                    AddWorkEvent.onRemoveAttachment(type: type),
+                    AddWorkEvent.onRemoveAttachment(
+                      type: type,
+                    ),
                   ),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.close_rounded,
-                    color: _muted,
+                    color: AppColors.muted,
                     size: 20,
                   ),
                 )
               else ...[
                 const SizedBox(width: 8),
-                Icon(Icons.add_circle_outline, color: color, size: 22),
+                Icon(
+                  Icons.add_circle_outline_rounded,
+                  color: color,
+                  size: 24,
+                ),
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _submitButton(
+      BuildContext context,
+      AddWorkState state,
+      bool busy,
+      ) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: busy
+            ? null
+            : () {
+          FocusManager.instance.primaryFocus?.unfocus();
+
+          context.read<AddWorkBloc>().add(
+            const AddWorkEvent.onSubmitHomework(),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.purple,
+          foregroundColor: AppColors.white,
+          disabledBackgroundColor:
+          AppColors.purple.withValues(alpha: 0.18),
+          disabledForegroundColor: AppColors.muted,
+          elevation: 0,
+          minimumSize: const Size.fromHeight(52),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
+        child: state.isSubmitting
+            ? SizedBox(
+          height: 22,
+          width: 22,
+          child: CircularProgressIndicator(
+            color: AppColors.purple,
+            strokeWidth: 2,
+          ),
+        )
+            : Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            const Text(
+              'Add Homework',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.white
+                    .withValues(alpha: 0.13),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.arrow_forward_rounded,
+                color: AppColors.white,
+                size: 20,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -726,7 +928,9 @@ class AddHomeworkScreen extends StatelessWidget {
     if (!context.mounted || selected == null) return;
 
     context.read<AddWorkBloc>().add(
-      AddWorkEvent.onSelectWorkDate(date: selected),
+      AddWorkEvent.onSelectWorkDate(
+        date: selected,
+      ),
     );
   }
 
@@ -754,7 +958,9 @@ class AddHomeworkScreen extends StatelessWidget {
     if (!context.mounted || selected == null) return;
 
     context.read<AddWorkBloc>().add(
-      AddWorkEvent.onSelectDueDate(date: selected),
+      AddWorkEvent.onSelectDueDate(
+        date: selected,
+      ),
     );
   }
 }

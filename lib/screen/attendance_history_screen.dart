@@ -1,8 +1,12 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:pabulum_teacher/bloc/attendance/attendance_bloc.dart';
 import 'package:pabulum_teacher/routes/routes_name.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
 class AttendanceHistoryScreen extends StatelessWidget {
@@ -11,19 +15,13 @@ class AttendanceHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      appBar: Utils.customAppBar(
-        'Attendance',
-        context,
-        isBack: true,
-        onBackPress: () {
-          Navigator.of(context).pop();
-        },
-      ),
+      backgroundColor: AppColors.background,
       body: BlocProvider(
         create: (context) => AttendanceBloc()
           ..add(
-            const AttendanceEvent.onLoadAttendanceHistory(page: 1),
+            const AttendanceEvent.onLoadAttendanceHistory(
+              page: 1,
+            ),
           ),
         child: BlocBuilder<AttendanceBloc, AttendanceState>(
           builder: (context, state) {
@@ -32,233 +30,134 @@ class AttendanceHistoryScreen extends StatelessWidget {
 
             return Stack(
               children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
+                  ),
+                ),
                 SafeArea(
-                  top: false,
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 700),
-                      child: Column(
-                        children: [
-                          // Fixed header and date filter.
-                          Padding(
-                            padding:
-                            const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'View and manage attendance records',
-                                  style: TextStyle(
-                                    color: Color(0xFF737B90),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-
-                                Material(
-                                  color: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    side: const BorderSide(
-                                      color: Color(0xFFE4E7EF),
-                                    ),
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: InkWell(
-                                    onTap: busy
-                                        ? null
-                                        : () => _selectDate(
-                                      context,
-                                      state.filterDate,
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 10,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          const _CalendarIcon(),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              state.filterDate == null
-                                                  ? 'Filter by date'
-                                                  : _formatDate(
-                                                state.filterDate!,
-                                              ),
-                                              style: TextStyle(
-                                                color: state.filterDate == null
-                                                    ? const Color(0xFF737B90)
-                                                    : const Color(0xFF202329),
-                                                fontSize: 15,
-                                                fontWeight:
-                                                state.filterDate == null
-                                                    ? FontWeight.normal
-                                                    : FontWeight.w600,
-                                              ),
-                                            ),
-                                          ),
-                                          if (state.filterDate != null)
-                                            IconButton(
-                                              tooltip: 'Clear date',
-                                              onPressed: busy
-                                                  ? null
-                                                  : () {
-                                                context
-                                                    .read<
-                                                    AttendanceBloc>()
-                                                    .add(
-                                                  const AttendanceEvent
-                                                      .onLoadAttendanceHistory(
-                                                    page: 1,
-                                                    date: null,
-                                                  ),
-                                                );
-                                              },
-                                              icon: const Icon(
-                                                Icons.close_rounded,
-                                                color: Color(0xFF737B90),
-                                              ),
-                                            )
-                                          else
-                                            const Icon(
-                                              Icons.chevron_right_rounded,
-                                              color: Color(0xFF737B90),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(height: 24),
-                                Row(
-                                  children: [
-                                    const Expanded(
-                                      child: Text(
-                                        'Attendance history',
-                                        style: TextStyle(
-                                          color: Color(0xFF202329),
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    if (!state.isLoading &&
-                                        records.isNotEmpty)
-                                      Text(
-                                        '${records.length} records',
-                                        style: const TextStyle(
-                                          color: Color(0xFF737B90),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 18),
-                              ],
-                            ),
-                          ),
-
-                          // Only the list scrolls.
-                          Expanded(
-                            child: records.isEmpty
-                                ? state.isLoading
-                                ? const SizedBox.shrink()
-                                : _buildEmptyState(context, state)
-                                : ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(
-                                20,
-                                0,
-                                20,
-                                24,
-                              ),
-                              itemCount: records.length + 1,
-                              itemBuilder: (context, index) {
-                                // Last item is the pagination footer.
-                                if (index == records.length) {
-                                  return _buildPagination(
-                                    context,
-                                    state,
-                                  );
-                                }
-
-                                final record = records[index];
-
-                                return Padding(
-                                  padding:
-                                  const EdgeInsets.only(bottom: 14),
-                                  child: _AttendanceHistoryCard(
-                                    key: ValueKey(record.id),
-                                    date: record.date ?? '—',
-                                    present: record.presentCount ?? 0,
-                                    absent: record.absentCount ?? 0,
-                                    onTap: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        RouteName.attendanceDetailScreen,
-                                        arguments: record.id,
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
-                          // Fixed bottom button.
-                          Container(
-                            width: double.infinity,
-                            padding:
-                            const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              border: Border(
-                                top: BorderSide(
-                                  color: Color(0xFFE6E8F0),
-                                ),
-                              ),
-                            ),
-                            child: FilledButton.icon(
-                              onPressed: busy
-                                  ? null
-                                  : () {
-                                Navigator.pushNamed(context, RouteName.takeAttendanceScreen);
-                              },
-                              icon: const Icon(
-                                Icons.event_available_outlined,
-                              ),
-                              label: const Text(
-                                'Take attendance',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF704CFF),
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size.fromHeight(52),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        child: CustomAppBar(
+                          title: 'Attendance',
+                          subtitle:
+                          'View and manage\nattendance records',
+                          image: AppImages.icAttendanceCalendar,
+                        ),
                       ),
-                    ),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        child: _buildDateFilter(
+                          context,
+                          state,
+                          busy,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Attendance history',
+                                style: TextStyle(
+                                  color: AppColors.ink,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                            if (!state.isLoading &&
+                                records.isNotEmpty)
+                              Text(
+                                '${records.length} records',
+                                style: TextStyle(
+                                  color: AppColors.muted,
+                                  fontSize: 12,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      Expanded(
+                        child: records.isEmpty
+                            ? state.isLoading
+                            ? const SizedBox.shrink()
+                            : _buildEmptyState(state)
+                            : ListView.builder(
+                          padding:
+                          const EdgeInsets.symmetric(
+                            horizontal: 16,
+                          ),
+                          itemCount: records.length + 1,
+                          itemBuilder: (context, index) {
+                            if (index == records.length) {
+                              return _buildPagination(
+                                context,
+                                state,
+                              );
+                            }
+
+                            final record = records[index];
+
+                            return Padding(
+                              padding:
+                              const EdgeInsets.only(
+                                bottom: 8,
+                              ),
+                              child: _buildHistoryCard(
+                                date: record.date ?? '—',
+                                present:
+                                record.presentCount ?? 0,
+                                absent:
+                                record.absentCount ?? 0,
+                                index: index,
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    RouteName
+                                        .attendanceDetailScreen,
+                                    arguments: record.id,
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          16,
+                          6,
+                          16,
+                          10,
+                        ),
+                        child: _buildTakeAttendanceButton(
+                          context,
+                          busy,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                // Your existing loading overlay.
                 if (state.isLoading) Utils.loaderBrier(),
                 if (state.isLoading) Utils.loaderWid(),
               ],
@@ -269,28 +168,419 @@ class AttendanceHistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(
+  Widget _buildDateFilter(
       BuildContext context,
       AttendanceState state,
+      bool busy,
       ) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: busy
+            ? null
+            : () => _selectDate(
+          context,
+          state.filterDate,
+        ),
+        child: Container(
+          height: 82,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.colorGrey1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.purple.withValues(
+                  alpha: 0.07,
+                ),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 53,
+                height: 53,
+                decoration: BoxDecoration(
+                  color: AppColors.lavender,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(
+                  Icons.calendar_month_rounded,
+                  color: AppColors.purple,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Filter by date',
+                      style: TextStyle(
+                        color: AppColors.muted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      state.filterDate == null
+                          ? 'Select date'
+                          : _formatDate(state.filterDate!),
+                      style: TextStyle(
+                        color: AppColors.ink,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (state.filterDate != null)
+                IconButton(
+                  onPressed: busy
+                      ? null
+                      : () {
+                    context.read<AttendanceBloc>().add(
+                      const AttendanceEvent
+                          .onLoadAttendanceHistory(
+                        page: 1,
+                        date: null,
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: AppColors.muted,
+                  ),
+                )
+              else
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppColors.purple,
+                  size: 28,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
+  Widget _buildHistoryCard({
+    required String date,
+    required num present,
+    required num absent,
+    required int index,
+    VoidCallback? onTap,
+  }) {
+    final total = present + absent;
+
+    final progress = total > 0
+        ? (present / total).clamp(0.0, 1.0).toDouble()
+        : 0.0;
+
+    final percentage = total > 0
+        ? '${(progress * 100).round()}%'
+        : '—';
+
+    final dateInfo = _getDateInfo(date);
+
+    final accentColors = [
+      AppColors.softBlue,
+      AppColors.peach,
+      AppColors.softPink,
+      AppColors.lavender,
+    ];
+
+    final accent = accentColors[index % accentColors.length];
+
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          height: 88,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: AppColors.colorGrey1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.purple.withValues(
+                  alpha: 0.04,
+                ),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 7,
+                height: 65,
+                margin: const EdgeInsets.only(left: 7),
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              const SizedBox(width: 7),
+
+              Container(
+                width: 110,
+                height: 67,
+                decoration: BoxDecoration(
+                  color: AppColors.lavender.withValues(
+                    alpha: 0.65,
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.calendar_month_rounded,
+                      color: AppColors.purple,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 7),
+                    Column(
+                      mainAxisAlignment:
+                      MainAxisAlignment.center,
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          dateInfo.day,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontSize: 19,
+                            height: 1,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          dateInfo.month,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          dateInfo.year,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              Expanded(
+                child: Column(
+                  mainAxisAlignment:
+                  MainAxisAlignment.center,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${present.toStringAsFixed(0)} present',
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: AppColors.green,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '${absent.toStringAsFixed(0)} absent',
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: AppColors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(
+                height: 56,
+                width: 56,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      height: 50,
+                      width: 50,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 5,
+                        strokeCap: StrokeCap.round,
+                        backgroundColor:
+                        AppColors.lavender,
+                        valueColor:
+                        AlwaysStoppedAnimation<Color>(
+                          AppColors.purple,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      percentage,
+                      style: TextStyle(
+                        color: AppColors.purple,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.muted,
+                size: 24,
+              ),
+              const SizedBox(width: 5),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTakeAttendanceButton(
+      BuildContext context,
+      bool busy,
+      ) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary,
+            AppColors.purple,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purple.withValues(
+              alpha: 0.22,
+            ),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: busy
+              ? null
+              : () {
+            Navigator.pushNamed(
+              context,
+              RouteName.takeAttendanceScreen,
+            );
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.event_available_outlined,
+                color: AppColors.white,
+                size: 23,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Take attendance',
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(width: 18),
+              Icon(
+                Icons.arrow_forward_rounded,
+                color: AppColors.white,
+                size: 22,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(AttendanceState state) {
     return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-
-            Text('No attendance records',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF202329),
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 65,
+            height: 65,
+            decoration: BoxDecoration(
+              color: AppColors.lavender,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(
+              Icons.event_busy_rounded,
+              color: AppColors.purple,
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No attendance records',
+            style: TextStyle(
+              color: AppColors.ink,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (state.filterDate != null) ...[
+            const SizedBox(height: 5),
+            Text(
+              'No attendance found for this date.',
+              style: TextStyle(
+                color: AppColors.muted,
+                fontSize: 12,
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -300,25 +590,24 @@ class AttendanceHistoryScreen extends StatelessWidget {
       AttendanceState state,
       ) {
     if (state.isLoadingMore) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
+      return Padding(
+        padding: const EdgeInsets.all(16),
         child: Center(
           child: CircularProgressIndicator(
-            color: Color(0xFF704CFF),
+            color: AppColors.purple,
           ),
         ),
       );
     }
 
-
     if (!state.hasMore) {
-      return const Padding(
-        padding: EdgeInsets.all(12),
+      return Padding(
+        padding: const EdgeInsets.all(12),
         child: Text(
           'All records loaded',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Color(0xFF737B90),
+            color: AppColors.muted,
             fontSize: 12,
           ),
         ),
@@ -327,14 +616,16 @@ class AttendanceHistoryScreen extends StatelessWidget {
 
     return Center(
       child: OutlinedButton(
-        onPressed: () => _loadMore(context, state),
+        onPressed: () {
+          _loadMore(context, state);
+        },
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF704CFF),
-          side: const BorderSide(
-            color: Color(0xFF704CFF),
+          foregroundColor: AppColors.purple,
+          side: BorderSide(
+            color: AppColors.purple,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(13),
           ),
         ),
         child: const Text('Load more'),
@@ -369,7 +660,9 @@ class AttendanceHistoryScreen extends StatelessWidget {
       BuildContext context,
       AttendanceState state,
       ) {
-    if (state.isLoading || state.isLoadingMore || !state.hasMore) {
+    if (state.isLoading ||
+        state.isLoadingMore ||
+        !state.hasMore) {
       return;
     }
 
@@ -383,234 +676,90 @@ class AttendanceHistoryScreen extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
 
     return '${date.day.toString().padLeft(2, '0')} '
         '${months[date.month - 1]} ${date.year}';
   }
-}
 
-class _AttendanceHistoryCard extends StatelessWidget {
-  const _AttendanceHistoryCard({
-    super.key,
-    required this.date,
-    required this.present,
-    required this.absent,
-    this.onTap,
-  });
-
-  final String date;
-  final num present;
-  final num absent;
-  final VoidCallback? onTap;
-
-  String _displayDate(String value) {
-    // Supports API dates in dd-MM-yyyy or yyyy-MM-dd format.
+  _AttendanceDateInfo _getDateInfo(String value) {
     final parts = value.trim().split('-');
 
-    if (parts.length != 3) return value;
+    if (parts.length != 3) {
+      return _AttendanceDateInfo(
+        day: value,
+        month: '',
+        year: '',
+      );
+    }
 
     final yearFirst = parts.first.length == 4;
 
-    final day = int.tryParse(yearFirst ? parts[2] : parts[0]);
+    final day = int.tryParse(
+      yearFirst ? parts[2] : parts[0],
+    );
+
     final month = int.tryParse(parts[1]);
-    final year = int.tryParse(yearFirst ? parts[0] : parts[2]);
 
-    if (day == null || month == null || year == null) {
-      return value;
-    }
+    final year = int.tryParse(
+      yearFirst ? parts[0] : parts[2],
+    );
 
-    final parsed = DateTime(year, month, day);
-
-    if (parsed.year != year ||
-        parsed.month != month ||
-        parsed.day != day) {
-      return value;
+    if (day == null ||
+        month == null ||
+        year == null ||
+        month < 1 ||
+        month > 12) {
+      return _AttendanceDateInfo(
+        day: value,
+        month: '',
+        year: '',
+      );
     }
 
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
 
-    return '${day.toString().padLeft(2, '0')} '
-        '${months[month - 1]} $year';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const purple = Color(0xFF704CFF);
-    const radius = BorderRadius.all(Radius.circular(14));
-
-    final total = present + absent;
-    final progress = total > 0
-        ? (present / total).clamp(0.0, 1.0).toDouble()
-        : 0.0;
-
-    final percentage =
-    total > 0 ? '${(progress * 100).round()}%' : '—';
-
-    // Allow the indicator to grow with accessibility text settings.
-    final scaledLabelSize = MediaQuery.textScalerOf(context).scale(12);
-    final ringSize = 52.0 + (scaledLabelSize - 12).clamp(0.0, 36.0) * 2;
-
-    return Material(
-      color: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: radius,
-        side: BorderSide(
-          color: Color(0xFFE6E8F0),
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        splashColor: const Color(0x145746FF),
-        highlightColor: const Color(0x085746FF),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.calendar_month_outlined,
-                          color: purple,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _displayDate(date),
-                            style: const TextStyle(
-                              color: Color(0xFF202329),
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 9),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Text(
-                          '${present.toStringAsFixed(0)} present',
-                          style: const TextStyle(
-                            color: Color(0xFF159654),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const Text(
-                          '·',
-                          style: TextStyle(
-                            color: Color(0xFF9399AA),
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
-                          '${absent.toStringAsFixed(0)} absent',
-                          style: const TextStyle(
-                            color: Color(0xFFEF5369),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-
-              // Circular attendance progress.
-              Semantics(
-                label: 'Attendance',
-                value: total > 0 ? percentage : 'No students',
-                child: ExcludeSemantics(
-                  child: SizedBox(
-                    width: ringSize,
-                    height: ringSize,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Positioned.fill(
-                          child: Padding(
-                            padding: const EdgeInsets.all(3),
-                            child: CircularProgressIndicator(
-                              value: progress,
-                              strokeWidth: 4,
-                              strokeCap: StrokeCap.round,
-                              color: purple,
-                              backgroundColor:
-                              const Color(0xFFEDE7FF),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              percentage,
-                              style: const TextStyle(
-                                color: purple,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-
-              if (onTap != null) ...[
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF9CA3B4),
-                  size: 22,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-class _CalendarIcon extends StatelessWidget {
-  const _CalendarIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0EBFF),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Icon(
-        Icons.calendar_month_outlined,
-        color: Color(0xFF704CFF),
-        size: 23,
-      ),
+    return _AttendanceDateInfo(
+      day: day.toString().padLeft(2, '0'),
+      month: months[month - 1],
+      year: year.toString(),
     );
   }
 }
 
+class _AttendanceDateInfo {
+  const _AttendanceDateInfo({
+    required this.day,
+    required this.month,
+    required this.year,
+  });
+
+  final String day;
+  final String month;
+  final String year;
+}

@@ -1,8 +1,11 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pabulum_teacher/bloc/my_student/my_student_bloc.dart';
 import 'package:pabulum_teacher/model/my_students.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
 import 'package:pabulum_teacher/screen/student_detail_dialog.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
 import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
@@ -12,199 +15,257 @@ class StudentsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      appBar: Utils.customAppBar(
-        'Students',
-        context,
-        isBack: true,
-        onBackPress: () {
-          Navigator.of(context).pop();
-
-        },
-      ),
+      backgroundColor: AppColors.background,
       body: BlocProvider(
         create: (context) =>
-        MyStudentBloc()
-          ..add(OnLoadMyStudents()),
+        MyStudentBloc()..add(OnLoadMyStudents()),
         child: BlocBuilder<MyStudentBloc, MyStudentState>(
           builder: (context, state) {
             return Stack(
-              children:[ SafeArea(
-                top: false,
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 700),
-                    child: CustomScrollView(
-                      keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                      slivers: [
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                          sliver: SliverToBoxAdapter(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Find a student by name',
-                                  style: TextStyle(
-                                    color: Color(0xFF737B90),
-                                    fontSize: 14,
+              children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints:
+                      const BoxConstraints(maxWidth: 700),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            child: CustomAppBar(
+                              title: 'Students',
+                              subtitle:
+                              'Find and manage your students\nwith ease.',
+                              image: AppImages.icStudent,
+                            ),
+                          ),
+                          Expanded(
+                            child: CustomScrollView(
+                              keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior
+                                  .onDrag,
+                              slivers: [
+                                SliverPadding(
+                                  padding:
+                                  const EdgeInsets.fromLTRB(
+                                    16,
+                                    0,
+                                    16,
+                                    0,
                                   ),
-                                ),
-                                const SizedBox(height: 12),
-                                TextField(
-                                  controller:state.studentNameController,
-                                  onChanged: (value) {
-                                    context.read<MyStudentBloc>().add(
-                                      MyStudentEvent.onLoadMyStudents(
-                                        query: value,
-                                        debounce: true,
-                                      ),
-                                    );
-                                  },
-                                  textInputAction: TextInputAction.search,
-                                  onSubmitted: (value) {
-                                    FocusScope.of(context).unfocus();
-                                    context.read<MyStudentBloc>().add(
-                                      MyStudentEvent.onLoadMyStudents(
-                                        query: value,
-                                      ),
-                                    );
-                                  },
-                                  style: const TextStyle(
-                                    color: Color(0xFF202329),
-                                    fontSize: 15,
-                                  ),
-                                  decoration: InputDecoration(
-                                    hintText: 'Search student name',
-                                    hintStyle: const TextStyle(
-                                      color: Color(0xFF9399AA),
-                                      fontSize: 15,
-                                    ),
-                                    prefixIcon: const Icon(
-                                      Icons.search_rounded,
-                                      color: Color(0xFF737B90),
-                                      size: 25,
-                                    ),
-                                    suffixIcon: state.query.isNotEmpty
-                                        ? IconButton(
-                                      tooltip: 'Clear search',
-                                      onPressed: (){
-                                        state.studentNameController.clear();
-                                        context.read<MyStudentBloc>().add(
-                                          const MyStudentEvent.onLoadMyStudents(query: ''),
-                                        );
-                                      },
-                                      icon: const Icon(
-                                        Icons.close_rounded,
-                                        color: Color(0xFF737B90),
-                                      ),
-                                    )
-                                        : null,
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 16,
-                                    ),
-                                    border: _searchBorder(),
-                                    enabledBorder: _searchBorder(),
-                                    focusedBorder: _searchBorder(
-                                      color: const Color(0xFF5746FF),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 28),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        state.isLoading
-                                            ? 'Search results'
-                                            : 'All students',
-                                        style: const TextStyle(
-                                          color: Color(0xFF202329),
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w700,
+                                  sliver: SliverToBoxAdapter(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                      children: [
+                                        TextField(
+                                          controller:
+                                          state.studentNameController,
+                                          onChanged: (value) {
+                                            context
+                                                .read<MyStudentBloc>()
+                                                .add(
+                                              MyStudentEvent
+                                                  .onLoadMyStudents(
+                                                query: value,
+                                                debounce: true,
+                                              ),
+                                            );
+                                          },
+                                          textInputAction:
+                                          TextInputAction.search,
+                                          onSubmitted: (value) {
+                                            FocusScope.of(context)
+                                                .unfocus();
+                                            context
+                                                .read<MyStudentBloc>()
+                                                .add(
+                                              MyStudentEvent
+                                                  .onLoadMyStudents(
+                                                query: value,
+                                              ),
+                                            );
+                                          },
+                                          style: TextStyle(
+                                            color: AppColors.ink,
+                                            fontSize: 14,
+                                          ),
+                                          decoration: InputDecoration(
+                                            hintText:
+                                            'Search student name',
+                                            hintStyle: TextStyle(
+                                              color: AppColors.muted,
+                                              fontSize: 13,
+                                            ),
+                                            prefixIcon: Icon(
+                                              Icons.search_rounded,
+                                              color: AppColors.purple,
+                                              size: 25,
+                                            ),
+                                            suffixIcon:
+                                            state.query.isNotEmpty
+                                                ? IconButton(
+                                              tooltip:
+                                              'Clear search',
+                                              onPressed: () {
+                                                state
+                                                    .studentNameController
+                                                    .clear();
+
+                                                context
+                                                    .read<
+                                                    MyStudentBloc>()
+                                                    .add(
+                                                  const MyStudentEvent
+                                                      .onLoadMyStudents(
+                                                    query: '',
+                                                  ),
+                                                );
+                                              },
+                                              icon: Icon(
+                                                Icons.close_rounded,
+                                                color:
+                                                AppColors.muted,
+                                              ),
+                                            )
+                                                : null,
+                                            filled: true,
+                                            fillColor:
+                                            AppColors.surface,
+                                            contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 14,
+                                              vertical: 16,
+                                            ),
+                                            border: _searchBorder(),
+                                            enabledBorder:
+                                            _searchBorder(),
+                                            focusedBorder:
+                                            _searchBorder(
+                                              color: AppColors.purple,
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        const SizedBox(height: 22),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                state.isLoading
+                                                    ? 'Search results'
+                                                    : 'All students',
+                                                style: TextStyle(
+                                                  color: AppColors.ink,
+                                                  fontSize: 20,
+                                                  fontWeight:
+                                                  FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              '${state.arrMyStudents.length} '
+                                                  '${state.arrMyStudents.length == 1 ? 'student' : 'students'}',
+                                              style: TextStyle(
+                                                color: AppColors.muted,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                      ],
                                     ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      '${state.arrMyStudents.length} '
-                                          '${state.arrMyStudents.length == 1
-                                          ? 'student'
-                                          : 'students'}',
-                                      style: const TextStyle(
-                                        color: Color(0xFF737B90),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                                const SizedBox(height: 18),
+                                if (state.arrMyStudents.isEmpty)
+                                  SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding:
+                                      const EdgeInsets.symmetric(
+                                        vertical: 45,
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(
+                                            Icons.person_search_rounded,
+                                            color: AppColors.purple,
+                                            size: 48,
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            state.isLoading
+                                                ? 'No students found'
+                                                : 'No students yet',
+                                            style: TextStyle(
+                                              color: AppColors.ink,
+                                              fontSize: 15,
+                                              fontWeight:
+                                              FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  SliverPadding(
+                                    padding:
+                                    const EdgeInsets.fromLTRB(
+                                      16,
+                                      0,
+                                      16,
+                                      16,
+                                    ),
+                                    sliver: SliverList(
+                                      delegate:
+                                      SliverChildBuilderDelegate(
+                                            (context, index) {
+                                          final student =
+                                          state.arrMyStudents[index];
+
+                                          return Padding(
+                                            padding:
+                                            const EdgeInsets.only(
+                                              bottom: 10,
+                                            ),
+                                            child: _StudentCard(
+                                              key: ValueKey(student.id),
+                                              student: student,
+                                              index: index,
+                                              onTap: () {
+                                                StudentDetailsDialog.show(
+                                                  context,
+                                                  student,
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
+                                        childCount:
+                                        state.arrMyStudents.length,
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
-                        ),
-                        if (state.arrMyStudents.isEmpty)
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
-                              child: Column(
-                                children: [
-                                  const Icon(
-                                    Icons.person_search_outlined,
-                                    size: 48,
-                                    color: Color(0xFF9399AA),
-                                  ),
-                                  const SizedBox(height: 14),
-                                  Text(
-                                    state.isLoading
-                                        ? 'No students found'
-                                        : 'No students yet',
-                                    style: const TextStyle(
-                                      color: Color(0xFF202329),
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-
-                                ],
-                              ),
-                            ),
-                          )
-                        else
-                          SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                            sliver: SliverList(
-                              delegate: SliverChildBuilderDelegate((context,
-                                  index,) {
-                                final student = state.arrMyStudents[index];
-
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 14),
-                                  child: _StudentCard(
-                                    key: ValueKey(student.id),
-                                    student: student,
-                                    onTap: () {
-                                      StudentDetailsDialog.show(context, student);
-
-                                    },
-                                  ),
-                                );
-                              }, childCount: state.arrMyStudents.length),
-                            ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-                if(state.isLoading)Utils.loaderBrier(),
-                if(state.isLoading)Utils.loaderWid()
-              ]
+                if (state.isLoading) Utils.loaderBrier(),
+                if (state.isLoading) Utils.loaderWid(),
+              ],
             );
           },
         ),
@@ -212,81 +273,88 @@ class StudentsScreen extends StatelessWidget {
     );
   }
 
-  OutlineInputBorder _searchBorder({Color color = const Color(0xFFE4E7EF)}) {
+  OutlineInputBorder _searchBorder({
+    Color? color,
+  }) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: color),
+      borderRadius: BorderRadius.circular(18),
+      borderSide: BorderSide(
+        color: color ?? AppColors.colorGrey1,
+      ),
     );
   }
 }
 
 class _StudentCard extends StatelessWidget {
-  const _StudentCard({super.key, required this.student, this.onTap});
+  const _StudentCard({
+    super.key,
+    required this.student,
+    required this.index,
+    this.onTap,
+  });
 
   final MyStudent student;
+  final int index;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    const radius = BorderRadius.all(Radius.circular(18));
+    final borderColor = Utils.getCardBorderColor(index);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x06000000),
-            blurRadius: 16,
-            offset: Offset(0, 5),
-          ),
-        ],
+      height: 94,
+      decoration: Utils.cardDecoration(
+        index: index,
+        radius: 20,
       ),
       child: Material(
-        color: Colors.white,
-        borderRadius: radius,
-        clipBehavior: Clip.antiAlias,
+        color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          splashColor: const Color(0x145746FF),
-          highlightColor: const Color(0x085746FF),
+          borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+            ),
             child: Row(
               children: [
                 _StudentAvatar(student: student),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
                     children: [
                       Text(
                         student.name ?? '',
-                        style: const TextStyle(
-                          color: Color(0xFF202329),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.ink,
                           fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Roll number: ${student.rollNumber}',
-                        style: const TextStyle(
-                          color: Color(0xFF737B90),
-                          fontSize: 14,
+                        'Roll number: ${student.rollNumber ?? '—'}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: AppColors.muted,
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
                 ),
-                if (onTap != null) ...[
-                  const SizedBox(width: 8),
-                  const Icon(
+                if (onTap != null)
+                  Icon(
                     Icons.chevron_right_rounded,
-                    color: Color(0xFF9CA3B4),
-                    size: 26,
+                    color: borderColor,
+                    size: 27,
                   ),
-                ],
               ],
             ),
           ),
@@ -297,9 +365,18 @@ class _StudentCard extends StatelessWidget {
 }
 
 class _StudentAvatar extends StatelessWidget {
-  const _StudentAvatar({required this.student});
+  const _StudentAvatar({
+    required this.student,
+  });
 
   final MyStudent student;
+
+  Widget _fallback() {
+    return Image.asset(
+      AppImages.icProfile,
+      fit: BoxFit.cover,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -308,38 +385,26 @@ class _StudentAvatar extends StatelessWidget {
     return ExcludeSemantics(
       child: ClipOval(
         child: SizedBox(
-          width: 52,
-          height: 52,
+          width: 56,
+          height: 56,
           child: imageUrl != null && imageUrl.isNotEmpty
               ? Image.network(
             imageUrl,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Image.asset(
-                AppImages.icProfile,
-                height: 70,
-                width: 70,
-                fit: BoxFit.cover,
-              );
+            errorBuilder:
+                (context, error, stackTrace) {
+              return _fallback();
             },
-            loadingBuilder: (context, child, progress) {
-              return progress == null ? child : Image.asset(
-                AppImages.icProfile,
-                height: 70,
-                width: 70,
-                fit: BoxFit.cover,
-              );
+            loadingBuilder:
+                (context, child, progress) {
+              return progress == null
+                  ? child
+                  : _fallback();
             },
           )
-              :Image.asset(
-            AppImages.icProfile,
-            height: 70,
-            width: 70,
-            fit: BoxFit.cover,
-          ),
+              : _fallback(),
         ),
       ),
     );
   }
-
 }

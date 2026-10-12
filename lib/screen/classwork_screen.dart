@@ -1,9 +1,13 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:pabulum_teacher/bloc/classwork/classwork_bloc.dart';
 import 'package:pabulum_teacher/model/classwork_model.dart';
 import 'package:pabulum_teacher/routes/routes_name.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
 class ClassworkScreen extends StatelessWidget {
@@ -12,121 +16,153 @@ class ClassworkScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      appBar: Utils.customAppBar(
-        'Classwork',
-        context,
-        isBack: true,
-        onBackPress: () => Navigator.of(context).pop(),
-      ),
+      backgroundColor: AppColors.background,
       body: BlocProvider(
         create: (_) => ClassworkBloc()
           ..add(const ClassworkEvent.onLoadClasswork()),
         child: BlocBuilder<ClassworkBloc, ClassworkState>(
           builder: (context, state) {
-            return SafeArea(
-              top: false,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 700),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          16,
-                          12,
-                          16,
-                          0,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Manage classwork shared with students',
-                              style: TextStyle(
-                                color: Color(0xFF7A879D),
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-
-                            _buildSearch(context, state),
-                            const SizedBox(height: 18),
-
-                            _buildListHeading(context, state),
-                            const SizedBox(height: 14),
-                          ],
-                        ),
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: 700,
                       ),
-
-                      Expanded(
-                        child: state.isLoading
-                            ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF168B80),
-                            strokeWidth: 2.5,
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding:
+                            const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            child: CustomAppBar(
+                              title: 'Classwork',
+                              subtitle:
+                              'Manage classwork shared\nwith your students.',
+                              image: AppImages.icClassworkHeader,
+                            ),
                           ),
-                        )
-                            : state.arrClasswork.isEmpty
-                            ? _buildEmptyState(context, state)
-                            : NotificationListener<ScrollNotification>(
-                          onNotification: (notification) {
-                            if (notification.depth == 0 &&
-                                notification
-                                is ScrollEndNotification &&
-                                notification.metrics.extentAfter <
-                                    250) {
-                              _loadNextPage(context);
-                            }
-
-                            return false;
-                          },
-                          child: ListView.builder(
-                            keyboardDismissBehavior:
-                            ScrollViewKeyboardDismissBehavior
-                                .onDrag,
-                            padding: const EdgeInsets.fromLTRB(
+                          Padding(
+                            padding:
+                            const EdgeInsets.fromLTRB(
                               16,
                               0,
                               16,
-                              20,
+                              0,
                             ),
-                            itemCount:
-                            state.arrClasswork.length + 1,
-                            itemBuilder: (context, index) {
-                              if (index ==
-                                  state.arrClasswork.length) {
-                                return _buildPaginationFooter(
+                            child: Column(
+                              children: [
+                                _buildSearch(context, state),
+                                const SizedBox(height: 16),
+                                _buildListHeading(
                                   context,
                                   state,
-                                );
-                              }
-
-                              final item =
-                              state.arrClasswork[index];
-
-                              return Padding(
-                                key: ValueKey(
-                                  item.id ?? 'classwork-$index',
                                 ),
-                                padding: const EdgeInsets.only(
-                                  bottom: 14,
-                                ),
-                                child: _buildClassworkCard(
-                                  context,
-                                  item,
-                                ),
-                              );
-                            },
+                                const SizedBox(height: 13),
+                              ],
+                            ),
                           ),
-                        ),
+                          Expanded(
+                            child: state.isLoading
+                                ? Center(
+                              child:
+                              CircularProgressIndicator(
+                                color: AppColors.purple,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                                : state.arrClasswork.isEmpty
+                                ? _buildEmptyState(
+                              context,
+                              state,
+                            )
+                                : NotificationListener<
+                                ScrollNotification>(
+                              onNotification:
+                                  (notification) {
+                                if (notification.depth ==
+                                    0 &&
+                                    notification
+                                    is ScrollEndNotification &&
+                                    notification
+                                        .metrics
+                                        .extentAfter <
+                                        250) {
+                                  _loadNextPage(
+                                    context,
+                                  );
+                                }
+
+                                return false;
+                              },
+                              child: ListView.builder(
+                                keyboardDismissBehavior:
+                                ScrollViewKeyboardDismissBehavior
+                                    .onDrag,
+                                padding:
+                                const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  20,
+                                ),
+                                itemCount: state
+                                    .arrClasswork
+                                    .length +
+                                    1,
+                                itemBuilder:
+                                    (context, index) {
+                                  if (index ==
+                                      state.arrClasswork
+                                          .length) {
+                                    return _buildPaginationFooter(
+                                      context,
+                                      state,
+                                    );
+                                  }
+
+                                  final item =
+                                  state.arrClasswork[
+                                  index];
+
+                                  return Padding(
+                                    key: ValueKey(
+                                      item.id ??
+                                          'classwork-$index',
+                                    ),
+                                    padding:
+                                    const EdgeInsets.only(
+                                      bottom: 13,
+                                    ),
+                                    child:
+                                    _buildClassworkCard(
+                                      context,
+                                      item,
+                                      index,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+              ],
             );
           },
         ),
@@ -152,25 +188,28 @@ class ClassworkScreen extends StatelessWidget {
       onSubmitted: (_) {
         FocusScope.of(context).unfocus();
       },
-      style: const TextStyle(
-        color: Color(0xFF19243B),
+      style: TextStyle(
+        color: AppColors.ink,
         fontSize: 14,
       ),
       decoration: InputDecoration(
         hintText: 'Search classwork title',
-        hintStyle: const TextStyle(
-          color: Color(0xFF929BAD),
-          fontSize: 14,
+        hintStyle: TextStyle(
+          color: AppColors.muted,
+          fontSize: 13,
         ),
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.search_rounded,
-          color: Color(0xFF69758D),
-          size: 23,
+          color: AppColors.purple,
+          size: 24,
         ),
-        suffixIcon: ValueListenableBuilder<TextEditingValue>(
+        suffixIcon:
+        ValueListenableBuilder<TextEditingValue>(
           valueListenable: state.searchController,
           builder: (context, value, child) {
-            if (value.text.isEmpty) return const SizedBox.shrink();
+            if (value.text.isEmpty) {
+              return const SizedBox.shrink();
+            }
 
             return IconButton(
               tooltip: 'Clear search',
@@ -178,37 +217,41 @@ class ClassworkScreen extends StatelessWidget {
                 state.searchController.clear();
 
                 context.read<ClassworkBloc>().add(
-                  const ClassworkEvent.onLoadClasswork(),
+                  const ClassworkEvent
+                      .onLoadClasswork(),
                 );
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.close_rounded,
-                color: Color(0xFF69758D),
-                size: 21,
+                color: AppColors.muted,
+                size: 20,
               ),
             );
           },
         ),
         filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
+        fillColor: AppColors.surface,
+        contentPadding:
+        const EdgeInsets.symmetric(
           horizontal: 14,
-          vertical: 14,
+          vertical: 15,
         ),
         enabledBorder: _searchBorder(),
         focusedBorder: _searchBorder(
-          color: const Color(0xFF168B80),
+          color: AppColors.purple,
         ),
       ),
     );
   }
 
   OutlineInputBorder _searchBorder({
-    Color color = const Color(0xFFDDE3ED),
+    Color? color,
   }) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: color),
+      borderRadius: BorderRadius.circular(17),
+      borderSide: BorderSide(
+        color: color ?? AppColors.colorGrey1,
+      ),
     );
   }
 
@@ -219,11 +262,13 @@ class ClassworkScreen extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final heading = Text(
-          state.query.isEmpty ? 'All classwork' : 'Search results',
-          style: const TextStyle(
-            color: Color(0xFF19243B),
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+          state.query.isEmpty
+              ? 'All classwork'
+              : 'Search results',
+          style: TextStyle(
+            color: AppColors.ink,
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
           ),
         );
 
@@ -231,10 +276,12 @@ class ClassworkScreen extends StatelessWidget {
           onPressed: () async {
             FocusScope.of(context).unfocus();
 
-            final saved = await Navigator.of(context).pushNamed(
-              RouteName.addHomeworkScreen,
+            final saved =
+            await Navigator.of(context).pushNamed(
+              RouteName.addClassworkScreen,
               arguments: true,
             );
+
             if (saved == true && context.mounted) {
               final bloc = context.read<ClassworkBloc>();
 
@@ -246,33 +293,39 @@ class ClassworkScreen extends StatelessWidget {
             }
           },
           style: FilledButton.styleFrom(
-            backgroundColor: const Color(0xFF168B80),
-            foregroundColor: Colors.white,
-            minimumSize: const Size(48, 48),
+            backgroundColor: AppColors.purple,
+            foregroundColor: AppColors.white,
+            minimumSize: const Size(48, 44),
             padding: const EdgeInsets.symmetric(
-              horizontal: 12,
+              horizontal: 13,
               vertical: 10,
             ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(13),
             ),
           ),
-          icon: const Icon(Icons.add_rounded, size: 20),
+          icon: const Icon(
+            Icons.add_rounded,
+            size: 20,
+          ),
           label: const Text(
             'Add Classwork',
             style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
             ),
           ),
         );
 
-        final stackHeading = constraints.maxWidth < 300 ||
-            MediaQuery.textScalerOf(context).scale(13) > 18;
+        final stackHeading =
+            constraints.maxWidth < 300 ||
+                MediaQuery.textScalerOf(context).scale(13) >
+                    18;
 
         if (stackHeading) {
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment:
+            CrossAxisAlignment.stretch,
             children: [
               heading,
               const SizedBox(height: 8),
@@ -287,7 +340,7 @@ class ClassworkScreen extends StatelessWidget {
         return Row(
           children: [
             Expanded(child: heading),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
             addButton,
           ],
         );
@@ -303,7 +356,8 @@ class ClassworkScreen extends StatelessWidget {
         state.isLoadingMore ||
         !state.hasMore ||
         state.currentPage == 0 ||
-        state.searchController.text.trim() != state.query) {
+        state.searchController.text.trim() !=
+            state.query) {
       return;
     }
 
@@ -320,14 +374,14 @@ class ClassworkScreen extends StatelessWidget {
       ClassworkState state,
       ) {
     if (state.isLoadingMore) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
+      return Padding(
+        padding: const EdgeInsets.all(16),
         child: Center(
           child: SizedBox(
             width: 24,
             height: 24,
             child: CircularProgressIndicator(
-              color: Color(0xFF168B80),
+              color: AppColors.purple,
               strokeWidth: 2,
             ),
           ),
@@ -335,12 +389,20 @@ class ClassworkScreen extends StatelessWidget {
       );
     }
 
-    if (!state.hasMore) return const SizedBox.shrink();
+    if (!state.hasMore) {
+      return const SizedBox.shrink();
+    }
 
     return Center(
       child: TextButton(
         onPressed: () => _loadNextPage(context),
-        child: const Text('Load more classwork'),
+        child: Text(
+          'Load more classwork',
+          style: TextStyle(
+            color: AppColors.purple,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }
@@ -348,133 +410,162 @@ class ClassworkScreen extends StatelessWidget {
   Widget _buildClassworkCard(
       BuildContext context,
       ClassworkData item,
+      int index,
       ) {
-    final colors = _cardColors(item.id);
-    final background = colors[0].withOpacity(0.5);
-    final header = colors[1];
-    final accent = colors[2];
+    final accent =
+    Utils.getCardBorderColor(index);
+
+    final background =
+    Utils.getCardBackgroundColor(index);
 
     return Container(
-      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(18),
-        border: Border(
-          top: BorderSide(color: accent, width: 4),
-          left: BorderSide(color: accent, width: 1),
-          right: BorderSide(color: accent, width: 1),
-          bottom: BorderSide(color: accent, width: 1),
-        ),
+        color: accent,
+        borderRadius: BorderRadius.circular(19),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildSubjectHeader(
-            item,
-            header: header,
-            accent: accent,
+      padding: const EdgeInsets.fromLTRB(
+        1,
+        6,
+        1,
+        1,
+      ),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(13),
+            topRight: Radius.circular(13),
+            bottomLeft: Radius.circular(18),
+            bottomRight: Radius.circular(18),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 6, 12, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildTitleActions(context, item),
-                Padding(
-                  padding: const EdgeInsets.only(top: 6, bottom: 12),
-                  child: Divider(
-                    height: 1,
-                    color: accent.withAlpha(40),
-                  ),
-                ),
-                _buildLessonTopicRow(item, accent),
-              ],
+        ),
+        child: Column(
+          crossAxisAlignment:
+          CrossAxisAlignment.stretch,
+          children: [
+            _buildSubjectHeader(
+              item,
+              accent: accent,
             ),
-          ),
-          _buildDateFooter(
-            item.date,
-            background: header.withAlpha(160),
-            accent: accent,
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                8,
+                12,
+                13,
+              ),
+              child: Column(
+                crossAxisAlignment:
+                CrossAxisAlignment.stretch,
+                children: [
+                  _buildTitleActions(
+                    context,
+                    item,
+                  ),
+                  Padding(
+                    padding:
+                    const EdgeInsets.only(
+                      top: 7,
+                      bottom: 12,
+                    ),
+                    child: Divider(
+                      height: 1,
+                      color: accent.withValues(
+                        alpha: 0.18,
+                      ),
+                    ),
+                  ),
+                  _buildLessonTopicRow(
+                    item,
+                    accent,
+                  ),
+                ],
+              ),
+            ),
+            _buildDateFooter(
+              item.date,
+              accent: accent,
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSubjectHeader(
       ClassworkData item, {
-        required Color header,
         required Color accent,
       }) {
     return Container(
-
       padding: const EdgeInsets.symmetric(
-        horizontal: 12,
+        horizontal: 11,
         vertical: 10,
       ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(16),topRight: Radius.circular(16)),
-        color: header,
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Row(
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: accent.withAlpha(28),
-                  borderRadius: BorderRadius.circular(9),
+      color: accent.withValues(alpha: 0.10),
+      child: Row(
+        children: [
+          Container(
+            width: 37,
+            height: 37,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: accent.withValues(
+                alpha: 0.13,
+              ),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Icon(
+              Icons.menu_book_rounded,
+              color: accent,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            child: Text(
+              _displayText(item.subject?.name),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: AppColors.ink,
+                fontSize: 15,
+                height: 1.3,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(width: 7),
+          ConstrainedBox(
+            constraints:
+            const BoxConstraints(maxWidth: 125),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 7,
+              ),
+              decoration: BoxDecoration(
+                color: accent.withValues(
+                  alpha: 0.14,
                 ),
-                child: Icon(
-                  Icons.menu_book_rounded,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${_displayText(item.standard?.name)}'
+                    ' • ${_displayText(item.division?.name)}',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
                   color: accent,
-                  size: 21,
+                  fontSize: 11,
+                  height: 1.3,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(width: 9),
-              Expanded(
-                child: Text(
-                  _displayText(item.subject?.name),
-                  style: const TextStyle(
-                    color: Color(0xFF19243B),
-                    fontSize: 15,
-                    height: 1.3,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: constraints.maxWidth * 0.44,
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accent.withAlpha(22),
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Text(
-                    '${_displayText(item.standard?.name)}'
-                        ' • ${_displayText(item.division?.name)}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: accent,
-                      fontSize: 11,
-                      height: 1.3,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -488,11 +579,11 @@ class ClassworkScreen extends StatelessWidget {
         final title = Text(
           _displayText(item.title),
           softWrap: true,
-          style: const TextStyle(
-            color: Color(0xFF19243B),
+          style: TextStyle(
+            color: AppColors.ink,
             fontSize: 16,
             height: 1.35,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
           ),
         );
 
@@ -503,7 +594,7 @@ class ClassworkScreen extends StatelessWidget {
             _buildAction(
               label: 'View',
               icon: Icons.visibility_outlined,
-              color: const Color(0xFF1769B5),
+              color: Utils.getCardBorderColor(2),
               onTap: () {
                 Navigator.pushNamed(
                   context,
@@ -515,20 +606,26 @@ class ClassworkScreen extends StatelessWidget {
             _buildAction(
               label: 'Delete',
               icon: Icons.delete_outline_rounded,
-              color: const Color(0xFFD34460),
-              onTap: () => _confirmDelete(context, item),
+              color: Utils.getCardBorderColor(3),
+              onTap: () => _confirmDelete(
+                context,
+                item,
+              ),
             ),
           ],
         );
 
-        final stackActions = constraints.maxWidth < 290 ||
-            MediaQuery.textScalerOf(context).scale(13) > 18;
+        final stackActions =
+            constraints.maxWidth < 290 ||
+                MediaQuery.textScalerOf(context).scale(13) >
+                    18;
 
         if (stackActions) {
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 7),
+              const SizedBox(height: 5),
               title,
               Align(
                 alignment: Alignment.centerRight,
@@ -541,7 +638,7 @@ class ClassworkScreen extends StatelessWidget {
         return Row(
           children: [
             Expanded(child: title),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             actions,
           ],
         );
@@ -559,8 +656,10 @@ class ClassworkScreen extends StatelessWidget {
       onPressed: onTap,
       style: TextButton.styleFrom(
         foregroundColor: color,
-        minimumSize: const Size(48, 48),
-        padding: const EdgeInsets.symmetric(horizontal: 5),
+        minimumSize: const Size(48, 42),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 4,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(9),
         ),
@@ -568,13 +667,13 @@ class ClassworkScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18),
+          Icon(icon, size: 17),
           const SizedBox(width: 4),
           Text(
             label,
             style: const TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -588,7 +687,8 @@ class ClassworkScreen extends StatelessWidget {
       ) {
     return IntrinsicHeight(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment:
+        CrossAxisAlignment.stretch,
         children: [
           Expanded(
             child: _buildField(
@@ -599,9 +699,9 @@ class ClassworkScreen extends StatelessWidget {
             ),
           ),
           VerticalDivider(
-            width: 21,
+            width: 18,
             thickness: 1,
-            color: accent.withAlpha(40),
+            color: accent.withValues(alpha: 0.18),
           ),
           Expanded(
             child: _buildField(
@@ -623,17 +723,22 @@ class ClassworkScreen extends StatelessWidget {
     required Color accent,
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+      CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, color: accent, size: 17),
+            Icon(
+              icon,
+              color: accent,
+              size: 17,
+            ),
             const SizedBox(width: 5),
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
-                  color: Color(0xFF748097),
+                style: TextStyle(
+                  color: AppColors.muted,
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                 ),
@@ -645,11 +750,11 @@ class ClassworkScreen extends StatelessWidget {
         Text(
           _displayText(value),
           softWrap: true,
-          style: const TextStyle(
-            color: Color(0xFF29354D),
+          style: TextStyle(
+            color: AppColors.ink,
             fontSize: 13,
-            height: 1.45,
-            fontWeight: FontWeight.w500,
+            height: 1.4,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -658,7 +763,6 @@ class ClassworkScreen extends StatelessWidget {
 
   Widget _buildDateFooter(
       String? date, {
-        required Color background,
         required Color accent,
       }) {
     return Container(
@@ -666,19 +770,19 @@ class ClassworkScreen extends StatelessWidget {
         horizontal: 12,
         vertical: 11,
       ),
-      color: background,
+      color: accent.withValues(alpha: 0.08),
       child: Row(
         children: [
           Icon(
             Icons.calendar_month_outlined,
-            color: accent,
-            size: 19,
+            color: AppColors.purple,
+            size: 20,
           ),
           const SizedBox(width: 8),
-          const Text(
+          Text(
             'Date',
             style: TextStyle(
-              color: Color(0xFF748097),
+              color: AppColors.muted,
               fontSize: 12,
             ),
           ),
@@ -686,10 +790,10 @@ class ClassworkScreen extends StatelessWidget {
           Expanded(
             child: Text(
               _displayText(date),
-              style: const TextStyle(
-                color: Color(0xFF24314A),
+              style: TextStyle(
+                color: AppColors.ink,
                 fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -710,8 +814,25 @@ class ClassworkScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('📝', style: TextStyle(fontSize: 38)),
-            const SizedBox(height: 12),
+            Container(
+              width: 70,
+              height: 70,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.purple.withValues(
+                  alpha: 0.10,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                failedToLoad
+                    ? Icons.cloud_off_rounded
+                    : Icons.edit_note_rounded,
+                color: AppColors.purple,
+                size: 35,
+              ),
+            ),
+            const SizedBox(height: 13),
             Text(
               failedToLoad
                   ? 'Classwork could not be loaded.'
@@ -719,10 +840,10 @@ class ClassworkScreen extends StatelessWidget {
                   ? 'No matching classwork'
                   : 'No classwork available',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF19243B),
+              style: TextStyle(
+                color: AppColors.ink,
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
             if (failedToLoad) ...[
@@ -731,11 +852,14 @@ class ClassworkScreen extends StatelessWidget {
                 onPressed: () {
                   context.read<ClassworkBloc>().add(
                     ClassworkEvent.onLoadClasswork(
-                      query: state.searchController.text,
+                      query:
+                      state.searchController.text,
                     ),
                   );
                 },
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(
+                  Icons.refresh_rounded,
+                ),
                 label: const Text('Retry'),
               ),
             ],
@@ -749,14 +873,17 @@ class ClassworkScreen extends StatelessWidget {
       BuildContext context,
       ClassworkData item,
       ) {
-    final colors = _cardColors(item.id);
+    final index = (item.id ?? 0).toInt().abs();
+    final accent = Utils.getCardBorderColor(index);
+    final background =
+    Utils.getCardBackgroundColor(index);
 
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
         return Dialog(
-          backgroundColor: colors[0],
-          surfaceTintColor: Colors.transparent,
+          backgroundColor: background,
+          surfaceTintColor: AppColors.surface,
           clipBehavior: Clip.antiAlias,
           insetPadding: const EdgeInsets.symmetric(
             horizontal: 20,
@@ -766,19 +893,25 @@ class ClassworkScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints:
+            const BoxConstraints(maxWidth: 500),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 6, 4),
+                  padding: const EdgeInsets.fromLTRB(
+                    16,
+                    8,
+                    6,
+                    4,
+                  ),
                   child: Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Classwork details',
                           style: TextStyle(
-                            color: Color(0xFF19243B),
+                            color: AppColors.ink,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
@@ -789,7 +922,10 @@ class ClassworkScreen extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(dialogContext).pop();
                         },
-                        icon: const Icon(Icons.close_rounded),
+                        icon: Icon(
+                          Icons.close_rounded,
+                          color: AppColors.ink,
+                        ),
                       ),
                     ],
                   ),
@@ -797,37 +933,41 @@ class ClassworkScreen extends StatelessWidget {
                 Flexible(
                   child: SingleChildScrollView(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      crossAxisAlignment:
+                      CrossAxisAlignment.stretch,
                       children: [
                         _buildSubjectHeader(
                           item,
-                          header: colors[1],
-                          accent: colors[2],
+                          accent: accent,
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding:
+                          const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment:
                             CrossAxisAlignment.stretch,
                             children: [
                               Text(
                                 _displayText(item.title),
-                                style: const TextStyle(
-                                  color: Color(0xFF19243B),
+                                style: TextStyle(
+                                  color: AppColors.ink,
                                   fontSize: 19,
                                   height: 1.35,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight:
+                                  FontWeight.w700,
                                 ),
                               ),
                               const SizedBox(height: 18),
-                              _buildLessonTopicRow(item, colors[2]),
+                              _buildLessonTopicRow(
+                                item,
+                                accent,
+                              ),
                             ],
                           ),
                         ),
                         _buildDateFooter(
                           item.date,
-                          background: colors[1],
-                          accent: colors[2],
+                          accent: accent,
                         ),
                       ],
                     ),
@@ -847,15 +987,18 @@ class ClassworkScreen extends StatelessWidget {
       ) async {
     final bloc = context.read<ClassworkBloc>();
 
-    showDeleteClassworkDialog(
+    await showDeleteClassworkDialog(
       context,
-      title: item.title??'',
-      classDetails: '${_displayText(item.standard?.name)}'
+      title: item.title ?? '',
+      classDetails:
+      '${_displayText(item.standard?.name)}'
           ' • ${_displayText(item.division?.name)}',
       date: item.date ?? '',
       onDelete: () {
         bloc.add(
-          ClassworkEvent.onDeleteClasswork(classworkId: (item.id??0).toInt()),
+          ClassworkEvent.onDeleteClasswork(
+            classworkId: (item.id ?? 0).toInt(),
+          ),
         );
       },
     );
@@ -868,19 +1011,18 @@ class ClassworkScreen extends StatelessWidget {
         required String date,
         required VoidCallback onDelete,
       }) async {
-    const navy = Color(0xFF19233E);
-    const muted = Color(0xFF78839F);
-    const red = Color(0xFFEF6070);
-    const border = Color(0xFFE9E4F5);
+    final red = Utils.getCardBorderColor(3);
 
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: const Color(0x800F172A),
+      barrierColor: AppColors.colorBlack.withValues(
+        alpha: 0.50,
+      ),
       builder: (dialogContext) {
         return Dialog(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.transparent,
+          backgroundColor: AppColors.surface,
+          surfaceTintColor: AppColors.surface,
           insetPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 24,
@@ -890,30 +1032,36 @@ class ClassworkScreen extends StatelessWidget {
           ),
           clipBehavior: Clip.antiAlias,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
+            constraints:
+            const BoxConstraints(maxWidth: 500),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(22),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment:
+                CrossAxisAlignment.stretch,
                 children: [
                   Center(
                     child: Container(
-                      width: 72,
-                      height: 72,
+                      width: 66,
+                      height: 66,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFEDF0),
-                        borderRadius: BorderRadius.circular(22),
+                        color: red.withValues(
+                          alpha: 0.12,
+                        ),
+                        borderRadius:
+                        BorderRadius.circular(20),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.delete_outline_rounded,
                         color: red,
-                        size: 36,
+                        size: 35,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  const Text(
+                  const SizedBox(height: 16),
+                  Text(
                     'DELETE CLASSWORK',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -924,107 +1072,113 @@ class ClassworkScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Are you sure?',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: navy,
-                      fontSize: 25,
+                      color: AppColors.ink,
+                      fontSize: 24,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     'You are about to delete this classwork. '
                         'This action cannot be undone.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: muted,
-                      fontSize: 14,
-                      height: 1.6,
+                      color: AppColors.muted,
+                      fontSize: 13,
+                      height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 22),
-
-                  // Homework details
+                  const SizedBox(height: 20),
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(13),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFAF9FF),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: border),
+                      color: AppColors.purple.withValues(
+                        alpha: 0.05,
+                      ),
+                      borderRadius:
+                      BorderRadius.circular(14),
+                      border: Border.all(
+                        color: AppColors.colorGrey1,
+                      ),
                     ),
                     child: Row(
                       children: [
                         Container(
                           width: 46,
                           height: 46,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1ECFF),
-                            borderRadius: BorderRadius.circular(13),
+                            color: AppColors.purple
+                                .withValues(alpha: 0.12),
+                            borderRadius:
+                            BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.edit_note_rounded,
-                            color: Color(0xFF8A72CF),
+                            color: AppColors.purple,
                             size: 27,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 11),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'CLASSWORK',
                                 style: TextStyle(
-                                  color: Color(0xFF969DB1),
+                                  color: AppColors.muted,
                                   fontSize: 11,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight:
+                                  FontWeight.w700,
                                 ),
                               ),
                               const SizedBox(height: 5),
                               Text(
                                 title,
-                                style: const TextStyle(
-                                  color: navy,
+                                style: TextStyle(
+                                  color: AppColors.ink,
                                   fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight:
+                                  FontWeight.w800,
                                   height: 1.3,
                                 ),
                               ),
                               const SizedBox(height: 5),
                               Text(
                                 classDetails,
-                                style: const TextStyle(
-                                  color: muted,
-                                  fontSize: 13,
-                                  height: 1.4,
+                                style: TextStyle(
+                                  color: AppColors.muted,
+                                  fontSize: 12,
                                 ),
                               ),
-                              const SizedBox(height: 5),
-
+                              const SizedBox(height: 7),
                               Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'START DATE : ',
-                                    style: TextStyle(
-                                      color: Color(0xFF969DB1),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                  Icon(
+                                    Icons.calendar_month_outlined,
+                                    color: AppColors.purple,
+                                    size: 17,
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    date,
-                                    style: const TextStyle(
-                                      color: navy,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      date,
+                                      style: TextStyle(
+                                        color: AppColors.ink,
+                                        fontSize: 12,
+                                        fontWeight:
+                                        FontWeight.w700,
+                                      ),
                                     ),
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -1032,60 +1186,55 @@ class ClassworkScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Warning
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 13,
+                      vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF8EC),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Utils.getCardBackgroundColor(4),
+                      borderRadius:
+                      BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         Icon(
                           Icons.warning_amber_rounded,
-                          color: Color(0xFFE8A12D),
+                          color: Utils.getCardBorderColor(4),
                           size: 21,
                         ),
-                        SizedBox(width: 9),
+                        const SizedBox(width: 9),
                         Expanded(
                           child: Text(
                             'Once deleted, this classwork cannot be recovered.',
                             style: TextStyle(
-                              color: Color(0xFFAC741C),
+                              color: AppColors.ink,
                               fontSize: 12,
+                              height: 1.4,
                               fontWeight: FontWeight.w600,
-                              height: 1.5,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 22),
-
-                  // Action buttons
+                  const SizedBox(height: 20),
                   LayoutBuilder(
                     builder: (context, constraints) {
-                      final cancelButton = OutlinedButton(
+                      final cancelButton =
+                      OutlinedButton(
                         onPressed: () {
                           Navigator.of(dialogContext).pop();
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: muted,
+                          foregroundColor: AppColors.muted,
                           minimumSize: const Size(0, 48),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                          side: const BorderSide(
-                            color: Color(0xFFDDD6ED),
+                          side: BorderSide(
+                            color: AppColors.colorGrey1,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius:
+                            BorderRadius.circular(12),
                           ),
                         ),
                         child: const Text(
@@ -1097,53 +1246,46 @@ class ClassworkScreen extends StatelessWidget {
                         ),
                       );
 
-                      final deleteButton = ElevatedButton(
+                      final deleteButton =
+                      ElevatedButton.icon(
                         onPressed: () {
-                          // Close this dialog, then dispatch the delete event.
                           Navigator.of(dialogContext).pop();
                           onDelete();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: red,
-                          foregroundColor: Colors.white,
+                          foregroundColor: AppColors.white,
                           elevation: 0,
                           minimumSize: const Size(0, 48),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius:
+                            BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.delete_outline_rounded,
-                              size: 18,
-                            ),
-                            SizedBox(width: 7),
-                            Flexible(
-                              child: Text(
-                                'Delete Classwork',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
+                        ),
+                        label: const Text(
+                          'Delete Classwork',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       );
 
-                      final stackButtons = constraints.maxWidth < 300 ||
-                          MediaQuery.textScalerOf(context).scale(13) > 18;
+                      final stackButtons =
+                          constraints.maxWidth < 300 ||
+                              MediaQuery.textScalerOf(
+                                context,
+                              ).scale(13) >
+                                  18;
 
                       if (stackButtons) {
                         return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          crossAxisAlignment:
+                          CrossAxisAlignment.stretch,
                           children: [
                             deleteButton,
                             const SizedBox(height: 10),
@@ -1174,29 +1316,6 @@ class ClassworkScreen extends StatelessWidget {
         );
       },
     );
-  }
-
-
-  List<Color> _cardColors(num? id) {
-    const palettes = [
-      [
-        Color(0xFFF7F2FF),
-        Color(0xFFE9DFFF),
-        Color(0xFF9470E8),
-      ],
-      [
-        Color(0xFFF0FBF7),
-        Color(0xFFD7F5EB),
-        Color(0xFF24A88A),
-      ],
-      [
-        Color(0xFFF1F6FF),
-        Color(0xFFDEEAFE),
-        Color(0xFF5A91D7),
-      ],
-    ];
-
-    return palettes[(id?.toInt() ?? 0).abs() % palettes.length];
   }
 
   String _displayText(String? value) {

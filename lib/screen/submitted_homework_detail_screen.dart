@@ -1,26 +1,22 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:pabulum_teacher/bloc/submittedwork/submitted_work_bloc.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
 class SubmittedHomeworkDetailScreen extends StatelessWidget {
-
-  const SubmittedHomeworkDetailScreen({
-    super.key,
-  });
-
-  static const _navy = Color(0xFF19243B);
-  static const _muted = Color(0xFF78839B);
-  static const _purple = Color(0xFF7655E8);
-  static const _border = Color(0xFFE8E5F1);
-  static const _background = Color(0xFFF7F8FC);
+  const SubmittedHomeworkDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final submittedHomeworkId =
     ModalRoute.of(context)!.settings.arguments as int;
+
     return BlocProvider(
       create: (_) => SubmittedHomeworkBloc()
         ..add(
@@ -28,7 +24,9 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
             submittedHomeworkId: submittedHomeworkId,
           ),
         ),
-      child: BlocConsumer<SubmittedHomeworkBloc, SubmittedHomeworkState>(
+      child: BlocConsumer<
+          SubmittedHomeworkBloc,
+          SubmittedHomeworkState>(
         listenWhen: (previous, current) =>
         !previous.isSubmitted && current.isSubmitted,
         listener: (context, state) {
@@ -38,19 +36,54 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
           return PopScope(
             canPop: !state.isSubmitting,
             child: Scaffold(
-              backgroundColor: _background,
-              appBar: Utils.customAppBar(
-                'Submission Details',
-                context,
-                isBack: true,
-                onBackPress: () {
-                  if (!state.isSubmitting) {
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-              body: SafeArea(
-                child: _buildBody(context, state),
+              backgroundColor: AppColors.background,
+              body: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Positioned.fill(
+                    child: Image.asset(
+                      AppImages.icBackgroundAll,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  SafeArea(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: 700,
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: CustomAppBar(
+                                title: 'Submission Details',
+                                subtitle:
+                                'View student homework\nand submit your review.',
+                                image: AppImages.icSubmittedDetailHeader,
+                                onBack: () {
+                                  if (!state.isSubmitting) {
+                                    Navigator.of(context).pop();
+                                  }
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildBody(
+                                context,
+                                state,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           );
@@ -64,69 +97,75 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
       SubmittedHomeworkState state,
       ) {
     if (state.isLoadingDetail) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
-          color: _purple,
+          color: AppColors.purple,
           strokeWidth: 2.5,
         ),
       );
     }
 
     if (state.submittedHomeworkDetailData == null) {
-      return _buildErrorState(context, state);
+      return _buildErrorState();
     }
 
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 700),
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildStudentHeader(context),
-              const SizedBox(height: 14),
-              _buildHomeworkSection(context),
-              const SizedBox(height: 14),
-              _buildAnswerSection(context),
-              const SizedBox(height: 14),
-              _buildReviewSection(context, state),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
+    return SingleChildScrollView(
+      keyboardDismissBehavior:
+      ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(
+        16,
+        0,
+        16,
+        24,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildStudentHeader(context),
+          const SizedBox(height: 13),
+          _buildHomeworkSection(context),
+          const SizedBox(height: 13),
+          _buildAnswerSection(context),
+          const SizedBox(height: 13),
+          _buildReviewSection(context, state),
+        ],
       ),
     );
   }
 
-  Widget _buildErrorState(
-      BuildContext context,
-      SubmittedHomeworkState state,
-      ) {
+  Widget _buildErrorState() {
     return Center(
-      child: SingleChildScrollView(
+      child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.cloud_off_rounded,
-              color: _muted,
-              size: 46,
+            Container(
+              width: 68,
+              height: 68,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.purple.withValues(
+                  alpha: 0.10,
+                ),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                color: AppColors.purple,
+                size: 34,
+              ),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Unable to load submission details.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: _navy,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+                color: AppColors.ink,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
               ),
             ),
-
           ],
         ),
       ),
@@ -140,67 +179,72 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
         .submittedHomeworkDetailData!;
 
     final studentInfo = [
-      if (detail.data?.student?.rollNumber?.isNotEmpty == true) 'Roll: ${detail.data?.student?.rollNumber}',
-      if (detail.data?.student?.grNumber?.isNotEmpty == true) 'GR: ${detail.data?.student?.grNumber}',
+      if (detail.data?.student?.rollNumber?.isNotEmpty == true)
+        'Roll: ${detail.data?.student?.rollNumber}',
+      if (detail.data?.student?.grNumber?.isNotEmpty == true)
+        'GR: ${detail.data?.student?.grNumber}',
     ].join(' • ');
 
     final classInfo = [
-      detail.data?.homework?.standard?.name??'',
-      detail.data?.homework?.division?.name??'',
+      detail.data?.homework?.standard?.name ?? '',
+      detail.data?.homework?.division?.name ?? '',
     ].where((value) => value.trim().isNotEmpty).join(' • ');
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3EFFF),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.purple.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(19),
         border: Border.all(
-          color: const Color(0xFFE3D9FA),
+          color: AppColors.purple.withValues(alpha: 0.20),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildAvatar(detail.data?.student?.profileImage??''),
+          _buildAvatar(
+            detail.data?.student?.profileImage ?? '',
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _display(detail.data?.student?.name??''),
-                  style: const TextStyle(
-                    color: _navy,
-                    fontSize: 16,
-                    height: 1.3,
-                    fontWeight: FontWeight.w700,
+                  _display(detail.data?.student?.name ?? ''),
+                  style: TextStyle(
+                    color: AppColors.ink,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 if (studentInfo.isNotEmpty) ...[
                   const SizedBox(height: 5),
                   Text(
                     studentInfo,
-                    style: const TextStyle(
-                      color: _muted,
+                    style: TextStyle(
+                      color: AppColors.muted,
                       fontSize: 12,
-                      height: 1.4,
+                      height: 1.35,
                     ),
                   ),
                 ],
                 if (classInfo.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 5),
                   Text(
                     classInfo,
-                    style: const TextStyle(
-                      color: _purple,
+                    style: TextStyle(
+                      color: AppColors.purple,
                       fontSize: 12,
-                      height: 1.4,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
-                const SizedBox(height: 8),
-                _buildStatus(detail.data?.status??''),
+                const SizedBox(height: 9),
+                _buildStatus(
+                  detail.data?.status ?? '',
+                ),
               ],
             ),
           ),
@@ -210,21 +254,22 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
   }
 
   Widget _buildAvatar(String imageUrl) {
-    const fallback = Icon(
-      Icons.person_outline_rounded,
-      color: _purple,
-      size: 28,
+    final fallback = Icon(
+      Icons.person_rounded,
+      color: AppColors.purple,
+      size: 34,
     );
 
     return Container(
-      width: 46,
-      height: 46,
+      width: 62,
+      height: 62,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         shape: BoxShape.circle,
         border: Border.all(
-          color: const Color(0xFFE3D9FA),
+          color: AppColors.purple.withValues(alpha: 0.35),
+          width: 1.5,
         ),
       ),
       child: imageUrl.trim().isEmpty
@@ -245,42 +290,53 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
 
     return _buildSection(
       title: 'Homework details',
-      icon: Icons.menu_book_outlined,
-      color: _purple,
+      icon: Icons.menu_book_rounded,
+      accent: Utils.getCardBorderColor(0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            _display(detail.data?.homework?.title??''),
-            style: const TextStyle(
-              color: _navy,
-              fontSize: 16,
-              height: 1.4,
-              fontWeight: FontWeight.w700,
+            _display(detail.data?.homework?.title ?? ''),
+            style: TextStyle(
+              color: AppColors.ink,
+              fontSize: 17,
+              height: 1.35,
+              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 14),
-          _buildField('Subject', detail.data?.homework?.subject?.name??''),
-          const SizedBox(height: 12),
-          _buildField('Lesson', detail.data?.homework?.lesson?.name??''),
-          const SizedBox(height: 12),
-          _buildField('Topic', detail.data?.homework?.topic?.name??''),
-          const Divider(
-            color: _border,
-            height: 26,
+          _buildField(
+            'Subject',
+            detail.data?.homework?.subject?.name ?? '',
           ),
-          _buildFieldPair(
-            'Start date',
-            detail.data?.homework?.startDate??'',
-            'Due date',
-            detail.data?.homework?.dueDate??'',
+          const SizedBox(height: 11),
+          _buildField(
+            'Lesson',
+            detail.data?.homework?.lesson?.name ?? '',
+          ),
+          const SizedBox(height: 11),
+          _buildField(
+            'Topic',
+            detail.data?.homework?.topic?.name ?? '',
+          ),
+          const SizedBox(height: 14),
+          Divider(
+            height: 1,
+            color: AppColors.colorGrey1,
           ),
           const SizedBox(height: 14),
           _buildFieldPair(
+            'Start date',
+            detail.data?.homework?.startDate ?? '',
+            'Due date',
+            detail.data?.homework?.dueDate ?? '',
+          ),
+          const SizedBox(height: 15),
+          _buildFieldPair(
             'Submitted on',
-            detail.data?.submittedAt??'',
+            detail.data?.submittedAt ?? '',
             'Last checked',
-            detail.data?.checkedAt??'',
+            detail.data?.checkedAt ?? '',
           ),
         ],
       ),
@@ -293,35 +349,27 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
         .state
         .submittedHomeworkDetailData!;
 
+    final answer = detail.data?.answer ?? '';
+
     return _buildSection(
       title: 'Student answer',
-      icon: Icons.assignment_outlined,
-      color: const Color(0xFF4489CF),
+      icon: Icons.assignment_rounded,
+      accent: Utils.getCardBorderColor(2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Text answer',
-            style: TextStyle(
-              color: _navy,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          _buildLabel('Text answer'),
           const SizedBox(height: 8),
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8F9FD),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _border),
-            ),
+            decoration: _fieldDecoration(),
             child: SelectableText(
-              detail.data?.answer?.isEmpty == true
+              answer.isEmpty
                   ? 'No text answer provided.'
-                  : detail.data?.answer??'',
-              style: const TextStyle(
-                color: _navy,
+                  : answer,
+              style: TextStyle(
+                color: AppColors.ink,
                 fontSize: 14,
                 height: 1.5,
               ),
@@ -329,59 +377,54 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
           ),
           if (detail.data?.audioUrl?.isNotEmpty == true) ...[
             const SizedBox(height: 16),
-            const Text(
-              'Audio answer',
-              style: TextStyle(
-                color: _navy,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            _buildLabel('Audio answer'),
             const SizedBox(height: 8),
             Material(
-              color: const Color(0xFFF3EFFF),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.purple.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(13),
               clipBehavior: Clip.antiAlias,
               child: InkWell(
-                onTap: () => _openAudio(detail.data?.audioUrl??''),
-                child: const Padding(
-                  padding: EdgeInsets.all(12),
+                onTap: () => _openAudio(
+                  detail.data?.audioUrl ?? '',
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
                   child: Row(
                     children: [
                       Icon(
                         Icons.play_circle_outline_rounded,
-                        color: _purple,
-                        size: 30,
+                        color: AppColors.purple,
+                        size: 36,
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Open audio answer',
                               style: TextStyle(
-                                color: _navy,
+                                color: AppColors.ink,
                                 fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(height: 3),
+                            const SizedBox(height: 4),
                             Text(
                               'Listen in your browser or audio app',
                               style: TextStyle(
-                                color: _muted,
+                                color: AppColors.muted,
                                 fontSize: 11,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(width: 8),
                       Icon(
                         Icons.open_in_new_rounded,
-                        color: _muted,
-                        size: 18,
+                        color: AppColors.purple,
+                        size: 19,
                       ),
                     ],
                   ),
@@ -391,74 +434,81 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
           ],
           if (detail.data?.images?.isNotEmpty == true) ...[
             const SizedBox(height: 16),
-            Text(
+            _buildLabel(
               'Images (${detail.data?.images?.length})',
-              style: const TextStyle(
-                color: _navy,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
             ),
             const SizedBox(height: 10),
             LayoutBuilder(
               builder: (context, constraints) {
-                final columns = constraints.maxWidth > 450 ? 3 : 2;
+                final columns =
+                constraints.maxWidth > 450 ? 3 : 2;
+
                 final width =
-                    (constraints.maxWidth - (columns - 1) * 10) / columns;
+                    (constraints.maxWidth - (columns - 1) * 10) /
+                        columns;
 
                 return Wrap(
                   spacing: 10,
                   runSpacing: 10,
-                  children: detail.data?.images?.map<Widget>((image) {
-                    final url = image.filePath?.trim() ?? '';
+                  children: detail.data?.images?.map<Widget>(
+                        (image) {
+                      final url =
+                          image.filePath?.trim() ?? '';
 
-                    if (url.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
+                      if (url.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
 
-                    return SizedBox(
-                      width: width,
-                      height: 110,
-                      child: Material(
-                        color: const Color(0xFFF3F4F8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(color: _border),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => _showImage(context, url),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.network(
-                                url,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(
-                                  Icons.broken_image_outlined,
-                                  color: _muted,
-                                  size: 28,
-                                ),
-                              ),
-                              const Positioned(
-                                right: 6,
-                                bottom: 6,
-                                child: CircleAvatar(
-                                  radius: 13,
-                                  backgroundColor: Colors.white,
-                                  child: Icon(
-                                    Icons.zoom_in_rounded,
-                                    color: _navy,
-                                    size: 18,
+                      return SizedBox(
+                        width: width,
+                        height: 115,
+                        child: Material(
+                          color: AppColors.surface,
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: AppColors.colorGrey1,
+                            ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () =>
+                                _showImage(context, url),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.network(
+                                  url,
+                                  fit: BoxFit.cover,
+                                  errorBuilder:
+                                      (_, __, ___) => Icon(
+                                    Icons.broken_image_outlined,
+                                    color: AppColors.muted,
+                                    size: 29,
                                   ),
                                 ),
-                              ),
-                            ],
+                                Positioned(
+                                  bottom: 6,
+                                  right: 6,
+                                  child: CircleAvatar(
+                                    radius: 14,
+                                    backgroundColor:
+                                    AppColors.surface,
+                                    child: Icon(
+                                      Icons.zoom_in_rounded,
+                                      color: AppColors.purple,
+                                      size: 19,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList() ??
+                      );
+                    },
+                  ).toList() ??
                       <Widget>[],
                 );
               },
@@ -473,23 +523,17 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
       BuildContext context,
       SubmittedHomeworkState state,
       ) {
-    final disabled = state.isSubmitting || state.isSubmitted;
+    final disabled =
+        state.isSubmitting || state.isSubmitted;
 
     return _buildSection(
       title: 'Teacher review',
-      icon: Icons.rate_review_outlined,
-      color: const Color(0xFF239578),
+      icon: Icons.rate_review_rounded,
+      accent: Utils.getCardBorderColor(1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Comment',
-            style: TextStyle(
-              color: _navy,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          _buildLabel('Comment'),
           const SizedBox(height: 8),
           TextField(
             controller: state.commentController,
@@ -497,56 +541,48 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
             minLines: 3,
             maxLines: 5,
             keyboardType: TextInputType.multiline,
-            style: const TextStyle(
-              color: _navy,
+            style: TextStyle(
+              color: AppColors.ink,
               fontSize: 14,
               height: 1.4,
             ),
             decoration: InputDecoration(
               hintText: 'Add your remarks (optional)',
-              hintStyle: const TextStyle(
-                color: _muted,
+              hintStyle: TextStyle(
+                color: AppColors.muted,
                 fontSize: 13,
               ),
               filled: true,
-              fillColor: const Color(0xFFFAFAFD),
+              fillColor: AppColors.surface,
               contentPadding: const EdgeInsets.all(12),
               border: _inputBorder(),
               enabledBorder: _inputBorder(),
               disabledBorder: _inputBorder(),
-              focusedBorder: _inputBorder(color: _purple),
+              focusedBorder: _inputBorder(
+                color: AppColors.purple,
+              ),
             ),
           ),
-          const SizedBox(height: 16),
-          const Text(
-            'Update status',
-            style: TextStyle(
-              color: _navy,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          const SizedBox(height: 15),
+          _buildLabel('Update status'),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _border),
-            ),
+            padding:
+            const EdgeInsets.symmetric(horizontal: 12),
+            decoration: _fieldDecoration(),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: state.selectedStatus,
                 isExpanded: true,
-                dropdownColor: Colors.white,
+                dropdownColor: AppColors.surface,
                 borderRadius: BorderRadius.circular(12),
-                style: const TextStyle(
-                  color: _navy,
+                style: TextStyle(
+                  color: AppColors.ink,
                   fontSize: 14,
                 ),
-                icon: const Icon(
+                icon: Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: _muted,
+                  color: AppColors.purple,
                 ),
                 items: const [
                   DropdownMenuItem(
@@ -563,8 +599,11 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
                     : (value) {
                   if (value == null) return;
 
-                  context.read<SubmittedHomeworkBloc>().add(
-                    SubmittedHomeworkEvent.onSelectReviewStatus(
+                  context
+                      .read<SubmittedHomeworkBloc>()
+                      .add(
+                    SubmittedHomeworkEvent
+                        .onSelectReviewStatus(
                       status: value,
                     ),
                   );
@@ -573,53 +612,69 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
             ),
           ),
           if (state.reviewErrorMessage?.isNotEmpty == true) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 11),
             Text(
               state.reviewErrorMessage!,
-              style: const TextStyle(
-                color: Color(0xFFC74758),
+              style: TextStyle(
+                color: Utils.getCardBorderColor(3),
                 fontSize: 12,
                 height: 1.4,
               ),
             ),
           ],
-          const SizedBox(height: 18),
+          const SizedBox(height: 17),
           SizedBox(
-            height: 48,
+            height: 49,
             child: ElevatedButton(
               onPressed: disabled
                   ? null
                   : () {
                 FocusScope.of(context).unfocus();
 
-                context.read<SubmittedHomeworkBloc>().add(
-                  const SubmittedHomeworkEvent.onSubmitReview(),
+                context
+                    .read<SubmittedHomeworkBloc>()
+                    .add(
+                  const SubmittedHomeworkEvent
+                      .onSubmitReview(),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: _purple,
-                foregroundColor: Colors.white,
-                disabledBackgroundColor: _purple.withAlpha(130),
+                backgroundColor: AppColors.purple,
+                foregroundColor: AppColors.white,
+                disabledBackgroundColor:
+                AppColors.purple.withValues(alpha: 0.45),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(13),
                 ),
               ),
               child: state.isSubmitting
-                  ? const SizedBox(
+                  ? SizedBox(
                 width: 21,
                 height: 21,
                 child: CircularProgressIndicator(
-                  color: Colors.white,
+                  color: AppColors.white,
                   strokeWidth: 2,
                 ),
               )
-                  : const Text(
-                'Submit review',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
+                  : Row(
+                mainAxisAlignment:
+                MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.send_rounded,
+                    size: 19,
+                  ),
+                  const SizedBox(width: 9),
+                  Text(
+                    'Submit review',
+                    style: TextStyle(
+                      color: AppColors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -628,43 +683,44 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
     );
   }
 
-  OutlineInputBorder _inputBorder({
-    Color color = _border,
-  }) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: BorderSide(color: color),
-    );
-  }
-
   Widget _buildSection({
     required String title,
     required IconData icon,
-    required Color color,
+    required Color accent,
     required Widget child,
   }) {
     return Container(
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _border),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.24),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(14),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 13,
+              vertical: 12,
+            ),
+            color: accent.withValues(alpha: 0.11),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: color.withAlpha(20),
+                    color: accent.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     icon,
-                    color: color,
+                    color: accent,
                     size: 21,
                   ),
                 ),
@@ -672,22 +728,18 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      color: _navy,
+                    style: TextStyle(
+                      color: AppColors.ink,
                       fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const Divider(
-            height: 1,
-            color: _border,
-          ),
           Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(13),
             child: child,
           ),
         ],
@@ -701,19 +753,19 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
-            color: _muted,
-            fontSize: 11,
+          style: TextStyle(
+            color: AppColors.muted,
+            fontSize: 12,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 5),
         Text(
           _display(value),
-          style: const TextStyle(
-            color: _navy,
-            fontSize: 13,
+          style: TextStyle(
+            color: AppColors.ink,
+            fontSize: 14,
             height: 1.4,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
@@ -730,39 +782,100 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: _buildField(firstLabel, firstValue),
+          child: _buildDateInfo(firstLabel, firstValue),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildField(secondLabel, secondValue),
+          child: _buildDateInfo(secondLabel, secondValue),
         ),
       ],
     );
   }
 
+  Widget _buildDateInfo(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.calendar_month_rounded,
+          color: AppColors.purple,
+          size: 19,
+        ),
+        const SizedBox(width: 7),
+        Expanded(
+          child: _buildField(label, value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLabel(String label) {
+    return Text(
+      label,
+      style: TextStyle(
+        color: AppColors.ink,
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+
+  BoxDecoration _fieldDecoration() {
+    return BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: AppColors.colorGrey1,
+      ),
+    );
+  }
+
+  OutlineInputBorder _inputBorder({
+    Color? color,
+  }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(
+        color: color ?? AppColors.colorGrey1,
+      ),
+    );
+  }
+
   Widget _buildStatus(String status) {
-    final checked = status.trim().toLowerCase() == 'checked';
+    final checked =
+        status.trim().toLowerCase() == 'checked';
 
     final color = checked
-        ? const Color(0xFF168367)
-        : const Color(0xFF426DC5);
+        ? Utils.getCardBorderColor(1)
+        : Utils.getCardBorderColor(2);
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 5,
+        horizontal: 11,
+        vertical: 7,
       ),
       decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(7),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(13),
       ),
-      child: Text(
-        _display(status),
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.circle,
+            size: 8,
+            color: color,
+          ),
+          const SizedBox(width: 7),
+          Text(
+            _display(status),
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -797,7 +910,7 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return Dialog.fullscreen(
-          backgroundColor: Colors.black,
+          backgroundColor: AppColors.colorBlack,
           child: SafeArea(
             child: Stack(
               children: [
@@ -809,19 +922,24 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
                       child: Image.network(
                         url,
                         fit: BoxFit.contain,
-                        loadingBuilder: (context, child, progress) {
-                          if (progress == null) return child;
+                        loadingBuilder:
+                            (context, child, progress) {
+                          if (progress == null) {
+                            return child;
+                          }
 
-                          return const Center(
+                          return Center(
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           );
                         },
-                        errorBuilder: (_, __, ___) => const Center(
+                        errorBuilder: (_, __, ___) => Center(
                           child: Text(
                             'Unable to load image.',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(
+                              color: AppColors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -833,10 +951,11 @@ class SubmittedHomeworkDetailScreen extends StatelessWidget {
                   right: 8,
                   child: IconButton(
                     tooltip: 'Close',
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    icon: const Icon(
+                    onPressed: () =>
+                        Navigator.of(dialogContext).pop(),
+                    icon: Icon(
                       Icons.close_rounded,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                 ),

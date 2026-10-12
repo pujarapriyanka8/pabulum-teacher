@@ -1,8 +1,12 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:pabulum_teacher/bloc/student_product/student_product_bloc.dart';
 import 'package:pabulum_teacher/model/student_product_model.dart';
-
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
+import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
 class StudentProductsScreen extends StatelessWidget {
@@ -11,16 +15,12 @@ class StudentProductsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      appBar: Utils.customAppBar(
-        'Product Requests',
-        context,
-        isBack: true,
-        onBackPress: () => Navigator.of(context).pop(),
-      ),
+      backgroundColor: AppColors.background,
       body: BlocProvider(
         create: (_) => StudentProductsBloc()
-          ..add(const StudentProductsEvent.onLoadStudentProducts()),
+          ..add(
+            const StudentProductsEvent.onLoadStudentProducts(),
+          ),
         child: BlocBuilder<StudentProductsBloc, StudentProductsState>(
           builder: (context, state) {
             final requests = state.arrStudentProducts;
@@ -34,9 +34,15 @@ class StudentProductsScreen extends StatelessWidget {
             }).length;
 
             return Stack(
+              fit: StackFit.expand,
               children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
+                  ),
+                ),
                 SafeArea(
-                  top: false,
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
@@ -45,46 +51,46 @@ class StudentProductsScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            child: CustomAppBar(
+                              title: 'Product Requests',
+                              subtitle:
+                              'Manage student orders for books,\nuniforms and other essentials.',
+                              image: AppImages.icStudentProductHeader,
+                            ),
+                          ),
+                          Padding(
                             padding: const EdgeInsets.fromLTRB(
                               16,
-                              12,
+                              0,
                               16,
                               14,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Manage student orders',
-                                  style: TextStyle(
-                                    color: Color(0xFF7C879B),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-
                                 if (state.currentPage > 0) ...[
                                   _buildSummary(
                                     total: requests.length,
                                     requested: requestedCount,
                                     delivered: deliveredCount,
                                   ),
-
                                   const SizedBox(height: 18),
                                 ],
-
-                                const Row(
+                                Row(
                                   children: [
-                                    Text(
+                                    const Text(
                                       '🧑‍🎓',
                                       style: TextStyle(fontSize: 22),
                                     ),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         'Student requests',
                                         style: TextStyle(
-                                          color: Color(0xFF182641),
+                                          color: AppColors.ink,
                                           fontSize: 19,
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -103,13 +109,10 @@ class StudentProductsScreen extends StatelessWidget {
                                 : NotificationListener<ScrollNotification>(
                               onNotification: (notification) {
                                 if (notification.depth == 0 &&
-                                    notification
-                                    is ScrollEndNotification &&
-                                    notification.metrics.extentAfter <
-                                        250) {
+                                    notification is ScrollEndNotification &&
+                                    notification.metrics.extentAfter < 250) {
                                   _loadNextPage(context);
                                 }
-
                                 return false;
                               },
                               child: ListView.builder(
@@ -135,7 +138,7 @@ class StudentProductsScreen extends StatelessWidget {
                                       request.id ?? 'request-$index',
                                     ),
                                     padding: const EdgeInsets.only(
-                                      bottom: 14,
+                                      bottom: 12,
                                     ),
                                     child: _buildRequestCard(
                                       context,
@@ -191,22 +194,22 @@ class StudentProductsScreen extends StatelessWidget {
             emoji: '📦',
             label: 'Total',
             value: total,
-            background: const Color(0xFFEEE9FF),
-            foreground: const Color(0xFF6542B9),
+            background: Utils.getCardBackgroundColor(0),
+            foreground: Utils.getCardBorderColor(0),
           ),
           _buildSummaryTile(
             emoji: '📥',
             label: 'Requested',
             value: requested,
-            background: const Color(0xFFFFF0E5),
-            foreground: const Color(0xFFB86525),
+            background: Utils.getCardBackgroundColor(4),
+            foreground: Utils.getCardBorderColor(4),
           ),
           _buildSummaryTile(
             emoji: '✅',
             label: 'Delivered',
             value: delivered,
-            background: const Color(0xFFE4F5EE),
-            foreground: const Color(0xFF168263),
+            background: Utils.getCardBackgroundColor(1),
+            foreground: Utils.getCardBorderColor(1),
           ),
         ];
 
@@ -227,7 +230,6 @@ class StudentProductsScreen extends StatelessWidget {
         }
 
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(child: tiles[0]),
             const SizedBox(width: 8),
@@ -270,8 +272,8 @@ class StudentProductsScreen extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Color(0xFF68778E),
+                  style: TextStyle(
+                    color: AppColors.muted,
                     fontSize: 10,
                     height: 1.2,
                     fontWeight: FontWeight.w500,
@@ -294,6 +296,7 @@ class StudentProductsScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildRequestCard(
       BuildContext context,
       StudentProductData request,
@@ -301,104 +304,118 @@ class StudentProductsScreen extends StatelessWidget {
     final status = request.status?.trim().toLowerCase() ?? '';
 
     final accent = status == 'delivered'
-        ? const Color(0xFF80CFB1)
+        ? Utils.getCardBorderColor(1)
         : status == 'requested'
-        ? const Color(0xFFFFB47D)
-        : const Color(0xFFBBC3D2);
+        ? Utils.getCardBorderColor(4)
+        : Utils.getCardBorderColor(2);
 
     return Container(
-      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border(
-          top: BorderSide(color: accent, width: 3),
-          left: BorderSide(color: accent, width: 1),
-          right: BorderSide(color: accent, width: 1),
-          bottom: BorderSide(color: accent, width: 1),
-        ),
+        color: accent,
+        borderRadius: BorderRadius.circular(19),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // No outer padding or gap around the header.
-          _buildStudentHeader(context, request),
-
-          // Padding applies only to the content below the header.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 16, 10, 13),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _buildProductImage(request.product?.image),
-                    const SizedBox(width: 11),
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        _displayText(request.product?.name),
-                        softWrap: true,
-                        style: const TextStyle(
-                          color: Color(0xFF182641),
-                          fontSize: 14,
-                          height: 1.4,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Flexible(
-                      flex: 2,
-                      child: Text(
-                        _priceText(request.product?.price),
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          color: Color(0xFF182641),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10,),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 5),
-                  child: Divider(
-                    height: 1,
-                    color: Color(0xFFEDF0F5),
-                  ),
-                ),
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+      padding: const EdgeInsets.fromLTRB(
+        1.2,
+        3.5,
+        1.2,
+        1.2,
+      ),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(15),
+            topRight: Radius.circular(15),
+            bottomLeft: Radius.circular(18),
+            bottomRight: Radius.circular(18),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildStudentHeader(
+              context,
+              request,
+              accent,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                12,
+                12,
+                13,
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      _buildProductImage(
+                        request.product?.image,
+                      ),
+                      const SizedBox(width: 11),
                       Expanded(
-                        child: _buildDate(
-                          label: 'Requested on',
-                          value: request.requestedAt,
+                        child: Text(
+                          _displayText(request.product?.name),
+                          softWrap: true,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontSize: 14,
+                            height: 1.4,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                      const VerticalDivider(
-                        width: 21,
-                        thickness: 1,
-                        color: Color(0xFFE2E7F0),
-                      ),
-                      Expanded(
-                        child: _buildDate(
-                          label: 'Delivered on',
-                          value: request.deliveredAt,
+                      const SizedBox(width: 9),
+                      Flexible(
+                        child: Text(
+                          _priceText(request.product?.price),
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: AppColors.ink,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Divider(
+                    height: 1,
+                    color: AppColors.colorGrey1,
+                  ),
+                  const SizedBox(height: 12),
+                  IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: _buildDate(
+                            label: 'Requested on',
+                            value: request.requestedAt,
+                          ),
+                        ),
+                        VerticalDivider(
+                          width: 21,
+                          thickness: 1,
+                          color: AppColors.colorGrey1,
+                        ),
+                        Expanded(
+                          child: _buildDate(
+                            label: 'Delivered on',
+                            value: request.deliveredAt,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -406,78 +423,93 @@ class StudentProductsScreen extends StatelessWidget {
   Widget _buildStudentHeader(
       BuildContext context,
       StudentProductData request,
+      Color accent,
       ) {
-    return Material(
-      color: const Color(0xFFF4F2FC),
-      elevation: 2,
-      borderRadius: BorderRadius.only(topLeft:Radius.circular(16),topRight: Radius.circular(16)),
-      shadowColor: const Color(0x307965A8),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final student = Row(
-              children: [
-                _buildStudentAvatar(request.student?.profileImage),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _displayText(request.student?.name),
-                        softWrap: true,
-                        style: const TextStyle(
-                          color: Color(0xFF182641),
-                          fontSize: 14,
-                          height: 1.3,
-                          fontWeight: FontWeight.w700,
-                        ),
+    return Container(
+      padding: const EdgeInsets.all(11),
+      color: accent.withValues(alpha: 0.06),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final student = Row(
+            children: [
+              _buildStudentAvatar(
+                request.student?.profileImage,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _displayText(request.student?.name),
+                      softWrap: true,
+                      style: TextStyle(
+                        color: AppColors.ink,
+                        fontSize: 14,
+                        height: 1.3,
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Roll No. '
-                            '${_displayText(request.student?.rollNumber)}',
-                        style: const TextStyle(
-                          color: Color(0xFF7A87A0),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.purple.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Text(
+                        'Roll No. ${_displayText(request.student?.rollNumber)}',
+                        style: TextStyle(
+                          color: AppColors.purple,
                           fontSize: 11,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+
+          final largeText =
+              MediaQuery.textScalerOf(context).scale(12) > 16;
+
+          if (constraints.maxWidth < 290 || largeText) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                student,
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: SizedBox(
+                    width: 136,
+                    child: _buildStatusDropdown(context, request),
                   ),
                 ),
               ],
             );
+          }
 
-            final largeText =
-                MediaQuery.textScalerOf(context).scale(12) > 16;
-
-            if (constraints.maxWidth < 290 || largeText) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  student,
-                  const SizedBox(height: 10),
-                  _buildStatusDropdown(context, request),
-                ],
-              );
-            }
-
-            return Row(
-              children: [
-                Expanded(child: student),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 126,
-                  child: _buildStatusDropdown(context, request),
-                ),
-              ],
-            );
-          },
-        ),
+          return Row(
+            children: [
+              Expanded(child: student),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 133,
+                child: _buildStatusDropdown(context, request),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
+
   Widget _buildStatusDropdown(
       BuildContext context,
       StudentProductData request,
@@ -493,16 +525,16 @@ class StudentProductsScreen extends StatelessWidget {
     final delivered = selectedStatus == 'Delivered';
 
     final foreground = selectedStatus == null
-        ? const Color(0xFF65728A)
+        ? AppColors.muted
         : delivered
-        ? const Color(0xFF138460)
-        : const Color(0xFFBF6325);
+        ? Utils.getCardBorderColor(1)
+        : Utils.getCardBorderColor(4);
 
     final background = selectedStatus == null
-        ? const Color(0xFFEEF1F6)
+        ? AppColors.surface
         : delivered
-        ? const Color(0xFFE0F3EB)
-        : const Color(0xFFFFEBDF);
+        ? Utils.getCardBackgroundColor(1)
+        : Utils.getCardBackgroundColor(4);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9),
@@ -510,7 +542,7 @@ class StudentProductsScreen extends StatelessWidget {
         color: background,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: foreground.withAlpha(35),
+          color: foreground.withValues(alpha: 0.25),
         ),
       ),
       child: DropdownButtonHideUnderline(
@@ -518,7 +550,7 @@ class StudentProductsScreen extends StatelessWidget {
           value: selectedStatus,
           isExpanded: true,
           itemHeight: 48,
-          dropdownColor: Colors.white,
+          dropdownColor: AppColors.white,
           borderRadius: BorderRadius.circular(12),
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
@@ -527,8 +559,8 @@ class StudentProductsScreen extends StatelessWidget {
           ),
           hint: Text(
             _displayText(request.status),
-            style: const TextStyle(
-              color: Color(0xFF65728A),
+            style: TextStyle(
+              color: AppColors.muted,
               fontSize: 11,
             ),
           ),
@@ -537,19 +569,21 @@ class StudentProductsScreen extends StatelessWidget {
               value: 'Requested',
               child: _buildStatusOption(
                 label: 'Requested',
-                color: const Color(0xFFBF6325),
+                color: Utils.getCardBorderColor(4),
               ),
             ),
             DropdownMenuItem<String>(
               value: 'Delivered',
               child: _buildStatusOption(
                 label: 'Delivered',
-                color: const Color(0xFF138460),
+                color: Utils.getCardBorderColor(1),
               ),
             ),
           ],
           onChanged: (value) {
-            if (value == null || value == selectedStatus) return;
+            if (value == null || value == selectedStatus) {
+              return;
+            }
 
             context.read<StudentProductsBloc>().add(
               StudentProductsEvent.onUpdateProductStatus(
@@ -592,46 +626,36 @@ class StudentProductsScreen extends StatelessWidget {
     );
   }
 
-  void _changeStatus(
-      BuildContext context, {
-        required StudentProductData request,
-        required String status,
-      }) {
-    // Connect the BLoC status-update event here after the update API
-    // endpoint, HTTP method and request body are supplied.
-    //
-    // Keep displaying the server's status until the update succeeds.
-    Utils.showToast(
-      'Status update API is not connected yet.',
-      false,
-    );
-  }
-
   Widget _buildStudentAvatar(String? imageUrl) {
     final url = imageUrl?.trim() ?? '';
 
-    const fallback = ColoredBox(
-      color: Color(0xFFE5DDF8),
+    final fallback = ColoredBox(
+      color: AppColors.purple.withValues(alpha: 0.10),
       child: Center(
         child: Icon(
           Icons.person_outline_rounded,
-          color: Color(0xFF7961B3),
+          color: AppColors.purple,
           size: 25,
         ),
       ),
     );
 
-    return ClipOval(
-      child: SizedBox(
-        width: 40,
-        height: 40,
-        child: url.isEmpty
-            ? fallback
-            : Image.network(
-          url,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => fallback,
+    return Container(
+      width: 52,
+      height: 52,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: AppColors.purple.withValues(alpha: 0.30),
         ),
+      ),
+      child: url.isEmpty
+          ? fallback
+          : Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => fallback,
       ),
     );
   }
@@ -647,12 +671,15 @@ class StudentProductsScreen extends StatelessWidget {
     );
 
     return Container(
-      width: 54,
-      height: 58,
+      width: 62,
+      height: 62,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F2F6),
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+          color: AppColors.colorGrey1,
+        ),
       ),
       child: url.isEmpty
           ? fallback
@@ -682,8 +709,8 @@ class StudentProductsScreen extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: Color(0xFF7A87A0),
+                style: TextStyle(
+                  color: AppColors.muted,
                   fontSize: 11,
                 ),
               ),
@@ -691,8 +718,8 @@ class StudentProductsScreen extends StatelessWidget {
               Text(
                 _displayText(value),
                 softWrap: true,
-                style: const TextStyle(
-                  color: Color(0xFF26364F),
+                style: TextStyle(
+                  color: AppColors.ink,
                   fontSize: 12,
                   height: 1.3,
                   fontWeight: FontWeight.w600,
@@ -710,19 +737,24 @@ class StudentProductsScreen extends StatelessWidget {
       StudentProductsState state,
       ) {
     if (state.isLoadingMore) {
-      return const Padding(
-        padding: EdgeInsets.all(18),
+      return Padding(
+        padding: const EdgeInsets.all(18),
         child: Center(
           child: SizedBox(
             width: 24,
             height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(
+              color: AppColors.purple,
+              strokeWidth: 2,
+            ),
           ),
         ),
       );
     }
 
-    if (!state.hasMore) return const SizedBox.shrink();
+    if (!state.hasMore) {
+      return const SizedBox.shrink();
+    }
 
     return Center(
       child: TextButton(
@@ -754,8 +786,8 @@ class StudentProductsScreen extends StatelessWidget {
                   ? 'No product requests yet.'
                   : 'Product requests could not be loaded.',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF7A87A0),
+              style: TextStyle(
+                color: AppColors.muted,
                 fontSize: 14,
                 height: 1.4,
               ),
@@ -765,7 +797,8 @@ class StudentProductsScreen extends StatelessWidget {
               TextButton.icon(
                 onPressed: () {
                   context.read<StudentProductsBloc>().add(
-                    const StudentProductsEvent.onLoadStudentProducts(),
+                    const StudentProductsEvent
+                        .onLoadStudentProducts(),
                   );
                 },
                 icon: const Icon(Icons.refresh_rounded),

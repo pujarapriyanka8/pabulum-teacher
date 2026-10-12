@@ -1,10 +1,13 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import 'package:pabulum_teacher/bloc/submittedwork/submitted_work_bloc.dart';
 import 'package:pabulum_teacher/routes/routes_name.dart';
+import 'package:pabulum_teacher/screen/custom_appbar.dart';
 import 'package:pabulum_teacher/utils/app_color.dart';
+import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/utils.dart';
 
 class SubmittedHomeworkScreen extends StatelessWidget {
@@ -13,57 +16,81 @@ class SubmittedHomeworkScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
-      appBar: Utils.customAppBar(
-        'Submitted Homework',
-        context,
-        isBack: true,
-        onBackPress: () => Navigator.of(context).pop(),
-      ),
+      backgroundColor: AppColors.background,
       body: BlocProvider(
         create: (_) => SubmittedHomeworkBloc()
           ..add(
             const SubmittedHomeworkEvent.onLoadSubmittedHomework(),
           ),
-        child: BlocBuilder<SubmittedHomeworkBloc, SubmittedHomeworkState>(
+        child: BlocBuilder<
+            SubmittedHomeworkBloc,
+            SubmittedHomeworkState>(
           builder: (context, state) {
-            return SafeArea(
-              top: false,
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 700),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSearch(context, state),
-                            const SizedBox(height: 16),
-                            Text(
-                              state.query.isEmpty
-                                  ? 'All submissions'
-                                  : 'Search results',
-                              style: TextStyle(
-                                color: AppColors.navy,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildContent(context, state),
-                      ),
-                    ],
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    AppImages.icBackgroundAll,
+                    fit: BoxFit.cover,
                   ),
                 ),
-              ),
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: 700,
+                      ),
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding:
+                            const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ),
+                            child: CustomAppBar(
+                              title: 'Submitted Homework',
+                              subtitle:
+                              'Review homework submitted\nby your students.',
+                              image:
+                              AppImages.icSubmittedHeader,
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                            const EdgeInsets.fromLTRB(
+                              16,
+                              0,
+                              16,
+                              0,
+                            ),
+                            child: Column(
+                              children: [
+                                _buildSearch(
+                                  context,
+                                  state,
+                                ),
+                                const SizedBox(height: 17),
+                                _buildListHeading(state),
+                                const SizedBox(height: 12),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildContent(
+                              context,
+                              state,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -80,7 +107,8 @@ class SubmittedHomeworkScreen extends StatelessWidget {
       textInputAction: TextInputAction.search,
       onChanged: (value) {
         context.read<SubmittedHomeworkBloc>().add(
-          SubmittedHomeworkEvent.onLoadSubmittedHomework(
+          SubmittedHomeworkEvent
+              .onLoadSubmittedHomework(
             page: 1,
             query: value,
           ),
@@ -90,28 +118,30 @@ class SubmittedHomeworkScreen extends StatelessWidget {
         FocusScope.of(context).unfocus();
 
         context.read<SubmittedHomeworkBloc>().add(
-          SubmittedHomeworkEvent.onLoadSubmittedHomework(
+          SubmittedHomeworkEvent
+              .onLoadSubmittedHomework(
             page: 1,
             query: value,
           ),
         );
       },
       style: TextStyle(
-        color: AppColors.navy,
+        color: AppColors.ink,
         fontSize: 14,
       ),
       decoration: InputDecoration(
-        hintText: 'Search student name, roll no…',
-        hintStyle: const TextStyle(
-          color: Color(0xFF929BAD),
+        hintText: 'Search student name, roll no...',
+        hintStyle: TextStyle(
+          color: AppColors.muted,
           fontSize: 13,
         ),
-        prefixIcon: const Icon(
+        prefixIcon: Icon(
           Icons.search_rounded,
-          color: Color(0xFF69758D),
-          size: 22,
+          color: AppColors.purple,
+          size: 24,
         ),
-        suffixIcon: ValueListenableBuilder<TextEditingValue>(
+        suffixIcon:
+        ValueListenableBuilder<TextEditingValue>(
           valueListenable: state.searchController,
           builder: (context, value, child) {
             if (value.text.isEmpty) {
@@ -124,35 +154,62 @@ class SubmittedHomeworkScreen extends StatelessWidget {
                 state.searchController.clear();
 
                 context.read<SubmittedHomeworkBloc>().add(
-                  const SubmittedHomeworkEvent.onLoadSubmittedHomework(),
+                  const SubmittedHomeworkEvent
+                      .onLoadSubmittedHomework(),
                 );
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.close_rounded,
-                color: Color(0xFF69758D),
+                color: AppColors.muted,
                 size: 20,
               ),
             );
           },
         ),
         filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
+        fillColor: AppColors.surface,
+        contentPadding:
+        const EdgeInsets.symmetric(
           horizontal: 14,
-          vertical: 13,
+          vertical: 15,
         ),
         enabledBorder: _searchBorder(),
-        focusedBorder: _searchBorder(color: AppColors.purple),
+        focusedBorder: _searchBorder(
+          color: AppColors.purple,
+        ),
       ),
     );
   }
 
   OutlineInputBorder _searchBorder({
-    Color color = const Color(0xFFE1E5EF),
+    Color? color,
   }) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: color),
+      borderRadius: BorderRadius.circular(17),
+      borderSide: BorderSide(
+        color: color ?? AppColors.colorGrey1,
+      ),
+    );
+  }
+
+  Widget _buildListHeading(
+      SubmittedHomeworkState state,
+      ) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            state.query.isEmpty
+                ? 'All submissions'
+                : 'Search results',
+            style: TextStyle(
+              color: AppColors.ink,
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -185,20 +242,36 @@ class SubmittedHomeworkScreen extends StatelessWidget {
         return false;
       },
       child: ListView.builder(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        itemCount: state.arrSubmittedHomework.length + 1,
+        keyboardDismissBehavior:
+        ScrollViewKeyboardDismissBehavior.onDrag,
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          20,
+        ),
+        itemCount:
+        state.arrSubmittedHomework.length + 1,
         itemBuilder: (context, index) {
-          if (index == state.arrSubmittedHomework.length) {
-            return _buildPaginationFooter(context, state);
+          if (index ==
+              state.arrSubmittedHomework.length) {
+            return _buildPaginationFooter(
+              context,
+              state,
+            );
           }
 
           return Padding(
             key: ValueKey(
-              state.arrSubmittedHomework[index].id ?? 'submission-$index',
+              state.arrSubmittedHomework[index].id ??
+                  'submission-$index',
             ),
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildSubmissionCard(context, index),
+            padding:
+            const EdgeInsets.only(bottom: 12),
+            child: _buildSubmissionCard(
+              context,
+              index,
+            ),
           );
         },
       ),
@@ -214,16 +287,23 @@ class SubmittedHomeworkScreen extends StatelessWidget {
         .state
         .arrSubmittedHomework[index];
 
-    final colors = _cardColors((item.id ?? 0).toInt());
-    final background = colors[0];
-    final accent = colors[1];
+    final accent =
+    Utils.getCardBorderColor(index);
 
-    final rollNumber = item.student?.rollNumber?.trim() ?? '';
-    final grNumber = item.student?.grNumber?.trim() ?? '';
+    final background =
+    Utils.getCardBackgroundColor(index);
+
+    final rollNumber =
+        item.student?.rollNumber?.trim() ?? '';
+
+    final grNumber =
+        item.student?.grNumber?.trim() ?? '';
 
     final studentInfo = [
-      if (rollNumber.isNotEmpty) 'Roll: $rollNumber',
-      if (grNumber.isNotEmpty) 'GR: $grNumber',
+      if (rollNumber.isNotEmpty)
+        'Roll: $rollNumber',
+      if (grNumber.isNotEmpty)
+        'GR: $grNumber',
     ].join(' • ');
 
     final classInfo = [
@@ -231,229 +311,268 @@ class SubmittedHomeworkScreen extends StatelessWidget {
       item.homework?.division?.name?.trim() ?? '',
     ].where((value) => value.isNotEmpty).join(' • ');
 
-    final subject = item.homework?.subject?.name?.trim() ?? '';
+    final subject =
+        item.homework?.subject?.name?.trim() ?? '';
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
       decoration: BoxDecoration(
-        color: background.withAlpha(128),
-        borderRadius: BorderRadius.circular(16),
-        border: Border(
-          top: BorderSide(
-            color: accent,
-            width: 3,
+        color: accent,
+        borderRadius: BorderRadius.circular(19),
+      ),
+      padding: const EdgeInsets.fromLTRB(
+        1,
+        6,
+        1,
+        1,
+      ),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          12,
+          12,
+          12,
+          12,
+        ),
+        decoration: BoxDecoration(
+          color: background.withValues(
+            alpha: 0.88,
           ),
-          left: BorderSide(
-            color: accent,
-            width: 1,
-          ),
-          right: BorderSide(
-            color: accent,
-            width: 1,
-          ),
-          bottom: BorderSide(
-            color: accent,
-            width: 1,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(13),
+            topRight: Radius.circular(13),
+            bottomLeft: Radius.circular(18),
+            bottomRight: Radius.circular(18),
           ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Student details and View action.
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildAvatar(
-                item.student?.profileImage ?? '',
-                accent,
+        child: Column(
+          crossAxisAlignment:
+          CrossAxisAlignment.stretch,
+          children: [
+            _buildStudentRow(
+              name: _displayText(
+                item.student?.name,
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _displayText(item.student?.name),
-                      style: TextStyle(
-                        color: AppColors.navy,
-                        fontSize: 15,
-                        height: 1.3,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (studentInfo.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        studentInfo,
-                        style: TextStyle(
-                          color: AppColors.muted,
-                          fontSize: 11,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                    if (classInfo.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        classInfo,
-                        style: TextStyle(
-                          color: accent,
-                          fontSize: 12,
-                          height: 1.3,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 4),
-              TextButton(
-                onPressed: () => {
-                  Navigator.pushNamed(
-                    context,
-                    RouteName.submittedHomeworkDetailScreen,
-                    arguments: item.id,
-                  )
-                },
-                style: TextButton.styleFrom(
-                  foregroundColor: accent,
-                  minimumSize: const Size(48, 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'View',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(width: 2),
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      size: 18,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Divider(
-              height: 1,
-              thickness: 1,
-              color: accent.withAlpha(30),
+              profileImage:
+              item.student?.profileImage ?? '',
+              studentInfo: studentInfo,
+              classInfo: classInfo,
+              accent: accent,
+              onView: () {
+                Navigator.pushNamed(
+                  context,
+                  RouteName
+                      .submittedHomeworkDetailScreen,
+                  arguments: item.id,
+                );
+              },
             ),
-          ),
-
-          // Homework title and subject.
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Icon(
-                  Icons.menu_book_outlined,
-                  color: accent,
-                  size: 20,
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 11,
+              ),
+              child: Divider(
+                height: 1,
+                thickness: 1,
+                color: accent.withValues(
+                  alpha: 0.20,
                 ),
               ),
-              const SizedBox(width: 9),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _displayText(item.homework?.title),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: AppColors.navy,
-                        fontSize: 14,
-                        height: 1.4,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (subject.isNotEmpty) ...[
-                      const SizedBox(height: 3),
+            ),
+            Row(
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.menu_book_rounded,
+                  color: accent,
+                  size: 23,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        subject,
+                        _displayText(
+                          item.homework?.title,
+                        ),
+                        maxLines: 2,
+                        overflow:
+                        TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: AppColors.muted,
-                          fontSize: 12,
-                          height: 1.3,
+                          color: AppColors.ink,
+                          fontSize: 15,
+                          height: 1.35,
+                          fontWeight:
+                          FontWeight.w800,
                         ),
                       ),
+                      if (subject.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subject,
+                          style: TextStyle(
+                            color: AppColors.muted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Compact date and status footer.
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 12,
-            runSpacing: 8,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    color: AppColors.muted,
-                    size: 14,
                   ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      _formatDate(item.submittedAt),
-                      style: TextStyle(
-                        color: AppColors.muted,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 13),
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_month_outlined,
+                  color: AppColors.purple,
+                  size: 19,
+                ),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    _formatDate(
+                      item.submittedAt,
+                    ),
+                    style: TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
-              ),
-              _buildStatus(item.status ?? ''),
-            ],
-          ),
-        ],
+                ),
+                _buildStatus(
+                  item.status ?? '',
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildAvatar(String imageUrl, Color accent) {
+  Widget _buildStudentRow({
+    required String name,
+    required String profileImage,
+    required String studentInfo,
+    required String classInfo,
+    required Color accent,
+    required VoidCallback onView,
+  }) {
+    return Row(
+      crossAxisAlignment:
+      CrossAxisAlignment.center,
+      children: [
+        _buildAvatar(
+          profileImage,
+          accent,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppColors.ink,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              if (studentInfo.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  studentInfo,
+                  style: TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 11,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+              if (classInfo.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  classInfo,
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(width: 4),
+        TextButton(
+          onPressed: onView,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.purple,
+            padding:
+            const EdgeInsets.symmetric(
+              horizontal: 4,
+            ),
+            minimumSize: const Size(48, 44),
+            shape: RoundedRectangleBorder(
+              borderRadius:
+              BorderRadius.circular(10),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'View',
+                style: TextStyle(
+                  color: AppColors.purple,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 19,
+                color: AppColors.purple,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAvatar(
+      String imageUrl,
+      Color accent,
+      ) {
     final fallback = Icon(
-      Icons.person_outline_rounded,
+      Icons.person_rounded,
       color: accent,
-      size: 25,
+      size: 28,
     );
 
     return Container(
-      width: 40,
-      height: 40,
+      width: 56,
+      height: 56,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: accent.withAlpha(18),
+        color: accent.withValues(
+          alpha: 0.12,
+        ),
         shape: BoxShape.circle,
         border: Border.all(
-          color: accent.withAlpha(40),
+          color: accent.withValues(
+            alpha: 0.40,
+          ),
+          width: 1.5,
         ),
       ),
       child: imageUrl.trim().isEmpty
@@ -461,55 +580,58 @@ class SubmittedHomeworkScreen extends StatelessWidget {
           : Image.network(
         imageUrl.trim(),
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => fallback,
+        errorBuilder:
+            (_, __, ___) => fallback,
       ),
     );
   }
 
-  Widget _buildStatus(String status) {
-    final normalized = status.trim().toLowerCase();
+  Widget _buildStatus(
+      String status,
+      ) {
+    final normalized =
+    status.trim().toLowerCase();
 
     final Color foreground;
-    final Color background;
 
     if (normalized == 'checked') {
-      foreground = const Color(0xFF168367);
-      background = const Color(0xFFE3F4EC);
+      foreground =
+          Utils.getCardBorderColor(1);
     } else if (normalized == 'submitted') {
-      foreground = const Color(0xFF426DC5);
-      background = const Color(0xFFEAF0FC);
+      foreground =
+          Utils.getCardBorderColor(2);
     } else {
       foreground = AppColors.muted;
-      background = const Color(0xFFF0F2F6);
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 5,
+        horizontal: 10,
+        vertical: 7,
       ),
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(7),
+        color: foreground.withValues(
+          alpha: 0.12,
+        ),
+        borderRadius: BorderRadius.circular(11),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.circle,
+            size: 8,
             color: foreground,
-            size: 5,
           ),
-          const SizedBox(width: 5),
-          Flexible(
-            child: Text(
-              status.trim().isEmpty ? 'Status unavailable' : status.trim(),
-              style: TextStyle(
-                color: foreground,
-                fontSize: 10,
-                height: 1.3,
-                fontWeight: FontWeight.w600,
-              ),
+          const SizedBox(width: 6),
+          Text(
+            status.trim().isEmpty
+                ? 'Status unavailable'
+                : status.trim(),
+            style: TextStyle(
+              color: foreground,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -517,20 +639,26 @@ class SubmittedHomeworkScreen extends StatelessWidget {
     );
   }
 
-  void _loadNextPage(BuildContext context) {
-    final bloc = context.read<SubmittedHomeworkBloc>();
+  void _loadNextPage(
+      BuildContext context,
+      ) {
+    final bloc =
+    context.read<SubmittedHomeworkBloc>();
+
     final state = bloc.state;
 
     if (state.isLoading ||
         state.isLoadingMore ||
         !state.hasMore ||
         state.currentPage == 0 ||
-        state.searchController.text.trim() != state.query) {
+        state.searchController.text.trim() !=
+            state.query) {
       return;
     }
 
     bloc.add(
-      SubmittedHomeworkEvent.onLoadSubmittedHomework(
+      SubmittedHomeworkEvent
+          .onLoadSubmittedHomework(
         page: state.currentPage + 1,
         query: state.query,
       ),
@@ -563,11 +691,16 @@ class SubmittedHomeworkScreen extends StatelessWidget {
 
     return Center(
       child: TextButton(
-        onPressed: () => _loadNextPage(context),
+        onPressed: () =>
+            _loadNextPage(context),
         child: Text(
           state.errorMessage == null
               ? 'Load more submissions'
               : 'Retry loading',
+          style: TextStyle(
+            color: AppColors.purple,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );
@@ -577,7 +710,8 @@ class SubmittedHomeworkScreen extends StatelessWidget {
       BuildContext context,
       SubmittedHomeworkState state,
       ) {
-    final failedToLoad = state.errorMessage != null;
+    final failedToLoad =
+        state.errorMessage != null;
 
     return Center(
       child: SingleChildScrollView(
@@ -585,14 +719,25 @@ class SubmittedHomeworkScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              failedToLoad
-                  ? Icons.cloud_off_rounded
-                  : Icons.assignment_turned_in_outlined,
-              color: const Color(0xFFB8ACD8),
-              size: 48,
+            Container(
+              width: 72,
+              height: 72,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.purple
+                    .withValues(alpha: 0.10),
+                borderRadius:
+                BorderRadius.circular(22),
+              ),
+              child: Icon(
+                failedToLoad
+                    ? Icons.cloud_off_rounded
+                    : Icons.assignment_turned_in_rounded,
+                color: AppColors.purple,
+                size: 36,
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             Text(
               failedToLoad
                   ? 'Submitted homework could not be loaded.'
@@ -601,23 +746,29 @@ class SubmittedHomeworkScreen extends StatelessWidget {
                   : 'No submitted homework available',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppColors.navy,
+                color: AppColors.ink,
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
             if (failedToLoad) ...[
               const SizedBox(height: 10),
               TextButton.icon(
                 onPressed: () {
-                  context.read<SubmittedHomeworkBloc>().add(
-                    SubmittedHomeworkEvent.onLoadSubmittedHomework(
+                  context
+                      .read<SubmittedHomeworkBloc>()
+                      .add(
+                    SubmittedHomeworkEvent
+                        .onLoadSubmittedHomework(
                       page: 1,
-                      query: state.searchController.text,
+                      query: state
+                          .searchController.text,
                     ),
                   );
                 },
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(
+                  Icons.refresh_rounded,
+                ),
                 label: const Text('Retry'),
               ),
             ],
@@ -627,160 +778,28 @@ class SubmittedHomeworkScreen extends StatelessWidget {
     );
   }
 
-  void _showSubmission(
-      BuildContext context,
-      int index,
+  String _formatDate(
+      String? value,
       ) {
-    final item = context
-        .read<SubmittedHomeworkBloc>()
-        .state
-        .arrSubmittedHomework[index];
-
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Submission summary',
-                          style: TextStyle(
-                            color: AppColors.navy,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'Close',
-                        onPressed: () => Navigator.of(dialogContext).pop(),
-                        icon: const Icon(Icons.close_rounded),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _buildSummaryField(
-                    'Student',
-                    item.student?.name ?? '',
-                  ),
-                  _buildSummaryField(
-                    'Roll number',
-                    item.student?.rollNumber ?? '',
-                  ),
-                  _buildSummaryField(
-                    'GR number',
-                    item.student?.grNumber ?? '',
-                  ),
-                  _buildSummaryField(
-                    'Standard',
-                    item.homework?.standard?.name ?? '',
-                  ),
-                  _buildSummaryField(
-                    'Division',
-                    item.homework?.division?.name ?? '',
-                  ),
-                  _buildSummaryField(
-                    'Homework',
-                    item.homework?.title ?? '',
-                  ),
-                  _buildSummaryField(
-                    'Subject',
-                    item.homework?.subject?.name ?? '',
-                  ),
-                  _buildSummaryField(
-                    'Submitted at',
-                    _formatDate(item.submittedAt),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: _buildStatus(item.status ?? ''),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSummaryField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: AppColors.muted,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            _displayText(value),
-            style: TextStyle(
-              color: AppColors.navy,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Color> _cardColors(int id) {
-    // Background and accent.
-    const palettes = [
-      [
-        Color(0xFFF5F0FF),
-        Color(0xFF8A62D6),
-      ],
-      [
-        Color(0xFFEDF9F4),
-        Color(0xFF279B7B),
-      ],
-      [
-        Color(0xFFEEF5FF),
-        Color(0xFF4A90D6),
-      ],
-    ];
-
-    return palettes[id.abs() % palettes.length];
-  }
-
-  String _formatDate(String? value) {
     final text = value?.trim() ?? '';
 
     if (text.isEmpty) return '—';
 
-    final date = DateTime.tryParse(text);
+    final date =
+    DateTime.tryParse(text);
 
-    return date == null ? text : DateFormat('dd-MM-yyyy').format(date);
+    return date == null
+        ? text
+        : DateFormat('dd-MM-yyyy').format(date);
   }
 
-  String _displayText(String? value) {
+  String _displayText(
+      String? value,
+      ) {
     final text = value?.trim() ?? '';
-    return text.isEmpty ? '—' : text;
+
+    return text.isEmpty
+        ? '—'
+        : text;
   }
 }

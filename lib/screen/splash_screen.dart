@@ -1,15 +1,16 @@
+
 import 'dart:convert';
-import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pabulum_teacher/model/login_response.dart';
 import 'package:pabulum_teacher/preferences/preferences.dart';
+import 'package:pabulum_teacher/screen/login_screen.dart';
 import 'package:pabulum_teacher/screen/main_navigation.dart';
 import 'package:pabulum_teacher/utils/app_color.dart';
 import 'package:pabulum_teacher/utils/app_images.dart';
 import 'package:pabulum_teacher/utils/constants.dart';
-import 'package:pabulum_teacher/utils/utils.dart';
-import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,157 +21,359 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late AnimationController _fadeController;
-  late AnimationController _scaleController;
+  late AnimationController _entryController;
+  late AnimationController _floatingController;
+
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
 
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+    _entryController = AnimationController(
       vsync: this,
+      duration: const Duration(milliseconds: 1200),
     );
 
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
+    _floatingController = AnimationController(
       vsync: this,
+      duration: const Duration(milliseconds: 2400),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    _fadeAnimation = CurvedAnimation(
+      parent: _entryController,
+      curve: const Interval(
+        0.0,
+        0.75,
+        curve: Curves.easeOut,
+      ),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.elasticOut),
+    _scaleAnimation = Tween<double>(
+      begin: 0.82,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _entryController,
+        curve: Curves.easeOutBack,
+      ),
     );
-    _startAnimations();
 
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.10),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _entryController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+
+    _entryController.forward();
+    _floatingController.repeat();
 
     _navigateToLogin();
   }
 
-  void _startAnimations() {
-    _fadeController.forward();
-    _scaleController.forward();
-  }
-
   void _navigateToLogin() {
+    Future.delayed(const Duration(seconds: 3), () async {
+      if (!mounted) return;
 
-    Future.delayed(const Duration(seconds: 1), () async {
-      if (mounted) {
-        var isLogin = await Preference.getBoolean(Constants.isLogin);
-        print(isLogin);
-        if(isLogin){
-          final userData =await Preference.getString(Constants.loginUserData);
-          Constants.shared.userLoginData =
-              UserData.fromJson(jsonDecode(userData));
-          Navigator.pushReplacement(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-              const MainNavigation(),
-              transitionsBuilder:
-                  (context, animation, secondaryAnimation, child) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              transitionDuration: const Duration(milliseconds: 800),
-            ),
-          );
-        }else{
-          Navigator.pushReplacement(
-            context,
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) =>
-              const LoginScreen(),
-            ),
-          );
-        }
+      var isLogin = await Preference.getBoolean(Constants.isLogin);
 
+      if (isLogin) {
+        final userData =
+        await Preference.getString(Constants.loginUserData);
 
+        Constants.shared.userLoginData =
+            UserData.fromJson(jsonDecode(userData));
+
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                ) =>
+            const MainNavigation(),
+            transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+                ) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            transitionDuration:
+            const Duration(milliseconds: 600),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                ) =>
+            const LoginScreen(),
+            transitionsBuilder: (
+                context,
+                animation,
+                secondaryAnimation,
+                child,
+                ) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            transitionDuration:
+            const Duration(milliseconds: 600),
+          ),
+        );
       }
     });
   }
 
   @override
   void dispose() {
-    _fadeController.dispose();
-    _scaleController.dispose();
+    _entryController.dispose();
+    _floatingController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration:  BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(AppImages.icSplashBG),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: AppColors.background,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(
+              AppImages.icBackground,
+              fit: BoxFit.fill,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final height = constraints.maxHeight;
 
-          child: SafeArea(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                  final scale = math.min(
+                    width / 390,
+                    height / 820,
+                  ).clamp(0.72, 1.15).toDouble();
 
-                          Image.asset(
-                            AppImages.icSplashLogo,
-                            height: 200,
-                            width: 250,
-                            fit: BoxFit.contain,
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Pabulum',
-                            style: TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: 2,
+                  final logoWidth = math.min(
+                    width * 0.58,
+                    245 * scale,
+                  );
 
+                  final illustrationWidth = math.min(
+                    width * 0.94,
+                    height * 0.45,
+                  );
+
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Positioned(
+                        top: height * 0.075,
+                        left: 0,
+                        right: 0,
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: Center(
+                            child: Image.asset(
+                              AppImages.icSplashLogo,
+                              width: logoWidth,
+                              height: height * 0.11,
+                              fit: BoxFit.contain,
                             ),
                           ),
-                          const SizedBox(height: 5),
-                          Text(
-                            'Student Learning Platform',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white.withOpacity(0.9),
-                              letterSpacing: 1,
-                            ),
-                          ),
-
-                          SizedBox(height: 50,)
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  Utils.navigationBar(color: AppColors.white),
 
-                ],
+                      Positioned(
+                        top: height * 0.225,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: ScaleTransition(
+                            scale: _scaleAnimation,
+                            child: AnimatedBuilder(
+                              animation: _floatingController,
+                              builder: (context, child) {
+                                final y = math.sin(
+                                  _floatingController.value *
+                                      math.pi *
+                                      2,
+                                ) *
+                                    4;
+
+                                return Transform.translate(
+                                  offset: Offset(0, y),
+                                  child: child,
+                                );
+                              },
+                              child: Image.asset(
+                                AppImages.bookWorldLogo,
+                                width: illustrationWidth,
+                                height: height * 0.36,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      Positioned(
+                        top: height * 0.605,
+                        left: 0,
+                        right: 0,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Text(
+                              'Pabulum',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 54 * scale,
+                                height: 1.1,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.textPrimary,
+                                letterSpacing: -1.8,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      Positioned(
+                        top: height * 0.705,
+                        left: 12,
+                        right: 12,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: ShaderMask(
+                              blendMode: BlendMode.srcIn,
+                              shaderCallback: (bounds) {
+                                return const LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color(0xFF7C4DFF),
+                                    Color(0xFFAF40DB),
+                                    Color(0xFFEA3A86),
+                                  ],
+                                ).createShader(bounds);
+                              },
+                              child: Text(
+                                'A little curiosity.\n'
+                                    'A world to discover.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 23 * scale,
+                                  height: 1.3,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.5,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      Positioned(
+                        top: height * 0.83,
+                        left: 0,
+                        right: 0,
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: _buildTagline(scale),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
-          ),
+          ],
         ),
       ),
+    );
+  }
 
+  Widget _buildTagline(double scale) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          'Learn',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14 * scale,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(width: 10 * scale),
+        _dot(AppColors.blue, scale),
+        SizedBox(width: 10 * scale),
+        Text(
+          'Connect',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14 * scale,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(width: 10 * scale),
+        _dot(AppColors.orange, scale),
+        SizedBox(width: 10 * scale),
+        Text(
+          'Grow',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14 * scale,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _dot(Color color, double scale) {
+    return Container(
+      width: 7 * scale,
+      height: 7 * scale,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
     );
   }
 }
